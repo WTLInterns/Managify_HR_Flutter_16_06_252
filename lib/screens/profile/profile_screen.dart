@@ -628,7 +628,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               _locationEnabled,
               (value) => setState(() => _locationEnabled = value),
             ),
-            _buildActionRow(Icons.language, 'Language', 'English (US)'),
+            _buildActionRow(Icons.star_rate, 'Rate Us', 'Give us app rating & Feedback'),
             _buildActionRow(Icons.storage, 'Storage', '2.4 GB used'),
           ]),
           SizedBox(height: 20),
@@ -866,14 +866,11 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Column(
         children: [
           _buildInfoCard('Privacy Controls', [
-            _buildActionRow(Icons.visibility, 'Profile Visibility', 'Public'),
-            _buildActionRow(Icons.block, 'Blocked Users', '3 users'),
-            _buildActionRow(
-              Icons.history,
-              'Activity Log',
-              'View your activity',
+            _buildActionRow(Icons.article, 'Term & Condition', 'Review our policies'),
+            _buildActionRow(Icons.lock, 'Privacy Policy', 'Review privacy information'),
+            _buildActionRow(Icons.language, 'Visit Our Website', 'View your activity',
             ),
-            _buildActionRow(Icons.data_usage, 'Data Usage', 'Manage data'),
+            _buildActionRow(Icons.phone_iphone, 'Follow Us On Social Media', 'Join our community'),
           ]),
         ],
       ),
@@ -920,7 +917,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Version 1',
+                    'Version 1.0.0',
                     style: TextStyle(fontSize: 16, color: Color(0xFF718096)),
                   ),
                   SizedBox(height: 16),
@@ -1054,7 +1051,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       color: isDestructive ? Colors.red : Color(0xFF2D3748),
                       fontWeight: FontWeight.w600,
                     ),
@@ -1062,7 +1059,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 14, color: Color(0xFF718096)),
+                    style: TextStyle(fontSize: 13, color: Color(0xFF718096)),
                   ),
                 ],
               ),
@@ -1101,7 +1098,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     color: Color(0xFF2D3748),
                     fontWeight: FontWeight.w600,
                   ),

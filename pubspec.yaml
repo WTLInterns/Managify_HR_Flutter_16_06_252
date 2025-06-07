@@ -40,7 +40,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/
+    - assets/Webutsav__3.png
+    - assets/HRM_logo.jpg
 
 flutter_icons:
   android: true

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hrm_dump_flutter/screens/dashbord/job_openings.dart';
 import 'package:hrm_dump_flutter/screens/dashbord/leave_records.dart';
@@ -49,7 +50,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   bool _isValidUrl(String url) {
     final uri = Uri.tryParse(url);
-    return uri != null && uri.hasAbsolutePath && (uri.isScheme('http') || uri.isScheme('https'));
+    return uri != null &&
+        uri.hasAbsolutePath &&
+        (uri.isScheme('http') || uri.isScheme('https'));
   }
 
   @override
@@ -58,7 +61,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       drawer: _buildDrawer(),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Center(child: Text('Dashboard', style: TextStyle(color: Colors.white))),
+        title:Padding(
+          padding: const EdgeInsets.only(left: 60),
+          child: Text('Dashboard', style: TextStyle(color: Colors.white)),
+        ),
         backgroundColor: Colors.blue.shade700,
         elevation: 4,
       ),
@@ -67,6 +73,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildDrawer() {
+    final bool hasValidNetworkImage = _isValidUrl(empimg);
+    final bool hasLocalImage = profileImage.isNotEmpty && File(profileImage).existsSync();
+
     return Drawer(
       child: ListView(
         children: [
@@ -77,8 +86,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             currentAccountPicture: CircleAvatar(
               radius: 50,
               backgroundColor: Colors.grey.shade300,
-              backgroundImage: _isValidUrl(empimg) ? NetworkImage(empimg) : null,
-              child: !_isValidUrl(empimg) ? const Icon(Icons.person, size: 60, color: Colors.white) : null,
+              backgroundImage:
+                  hasValidNetworkImage
+                      ? NetworkImage(empimg)
+                      : (hasLocalImage ? FileImage(File(profileImage)) : null),
+              child:
+                  (!hasValidNetworkImage && !hasLocalImage)
+                      ? const Icon(Icons.person, size: 50, color: Colors.white)
+                      : null,
             ),
           ),
           ListTile(
@@ -89,22 +104,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ListTile(
             leading: const Icon(Icons.person, color: Colors.blue),
             title: const Text('Profile'),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen())),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProfileScreen()),
+                ),
           ),
           ListTile(
             leading: const Icon(Icons.event_available, color: Colors.blue),
             title: const Text('Attendance'),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AttendanceFormPage())),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => AttendanceFormPage()),
+                ),
           ),
           ListTile(
             leading: const Icon(Icons.list_alt, color: Colors.blue),
             title: const Text('Attendance Records'),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AttendancesRecordsScreen())),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => AttendancesRecordsScreen()),
+                ),
           ),
           ListTile(
             leading: const Icon(Icons.event_busy, color: Colors.blue),
             title: const Text('Leave'),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LeaveScreen())),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => LeaveScreen()),
+                ),
           ),
           ListTile(
             leading: const Icon(Icons.list_alt, color: Colors.blue),
@@ -113,7 +144,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => LeaveRecordsTable(subadminId: subadminId, name: employeeFullName),
+                  builder:
+                      (_) => LeaveRecordsTable(
+                        subadminId: subadminId,
+                        name: employeeFullName,
+                      ),
                 ),
               );
             },
@@ -134,11 +169,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               ListTile(
                 title: const Text('Job Openings'),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobOpeningGridScreen())),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobOpeningGridScreen()),
+                    ),
               ),
               ListTile(
                 title: const Text('Upload Resume'),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => UploadResumeScreen())),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => UploadResumeScreen()),
+                    ),
               ),
             ],
           ),
@@ -148,20 +185,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onTap: () async {
               final shouldLogout = await showDialog<bool>(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Logout"),
-                  content: const Text("Are you sure you want to logout?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text("Logout"),
+                      content: const Text("Are you sure you want to logout?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text(
+                            "Cancel",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text(
+                            "Logout",
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text("Logout", style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
               );
 
               if (shouldLogout ?? false) {
@@ -192,7 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                     },
                   ),
-                      (route) => false,
+                  (route) => false,
                 );
               }
             },
@@ -203,6 +247,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildDashboardContent() {
+    final bool hasValidNetworkImage = _isValidUrl(empimg);
+    final bool hasLocalImage = profileImage.isNotEmpty && File(profileImage).existsSync();
     return SingleChildScrollView(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 400),
@@ -215,8 +261,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.grey.shade300,
-                backgroundImage: _isValidUrl(empimg) ? NetworkImage(empimg) : null,
-                child: !_isValidUrl(empimg)
+                backgroundImage: hasValidNetworkImage
+                    ? NetworkImage(empimg)
+                    : (hasLocalImage ? FileImage(File(profileImage)) : null),
+                child: (!hasValidNetworkImage && !hasLocalImage)
                     ? const Icon(Icons.person, size: 80, color: Colors.white)
                     : null,
               ),
@@ -225,23 +273,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Center(
               child: Text(
                 employeeFullName,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             Center(
               child: Text(
                 role,
-                style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             Center(child: Text(jobRole, style: const TextStyle(fontSize: 13))),
             const SizedBox(height: 20),
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ListTile(
                 leading: const Icon(Icons.business),
-                title: Text('Company: $registercompanyname', style: const TextStyle(fontSize: 14)),
+                title: Text(
+                  'Company: $registercompanyname',
+                  style: const TextStyle(fontSize: 14),
+                ),
               ),
             ),
           ],

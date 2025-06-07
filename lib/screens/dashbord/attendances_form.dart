@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -109,6 +110,13 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
     final String hour = time.hour.toString().padLeft(2, '0');
     final String minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  bool _isValidUrl(String url) {
+    final uri = Uri.tryParse(url);
+    return uri != null &&
+        uri.hasAbsolutePath &&
+        (uri.isScheme('http') || uri.isScheme('https'));
   }
 
   Future<void> _loadUserData() async {
@@ -493,7 +501,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
           await prefs.setInt('leaves', leaves); // save updated leave count
         }
 
-
         // If all fields are completed, navigate to records screen and increase count
         if (_hasPunchOut) {
           count++;
@@ -754,35 +761,71 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
 
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.grey.shade200,
-                        backgroundImage:
-                            (empimg != null && empimg.startsWith('https'))
-                                ? NetworkImage(empimg)
-                                : null,
-                        child:
-                            (empimg == null || !empimg.startsWith('https'))
-                                ? const Icon(
-                                  Icons.person,
-                                  size: 40,
-                                  color: Colors.black,
-                                )
-                                : null,
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [Colors.blueAccent, Colors.purpleAccent],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.all(3),
+                        child: CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.black,
+                          child: ClipOval(
+                            child:
+                                _isValidUrl(empimg)
+                                    ? Image.network(
+                                      empimg,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Image.asset(
+                                                'assets/Webutsav__3.png',
+                                                fit: BoxFit.cover,
+                                              ),
+                                    )
+                                    : Image.asset(
+                                      'assets/Webutsav__3.png',
+                                      fit: BoxFit.cover,
+                                    ),
+                          ),
+                        ),
                       ),
                       SizedBox(width: 20),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            employeeFullName,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              employeeFullName,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                                letterSpacing: 0.5,
+                              ),
                             ),
-                          ),
-                          Text(jobRole, style: TextStyle(fontSize: 15)),
-                        ],
+                            SizedBox(height: 4),
+                            Text(
+                              jobRole,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
