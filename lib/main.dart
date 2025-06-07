@@ -4,7 +4,6 @@ import 'package:hrm_dump_flutter/res/app_colour.dart';
 import 'package:hrm_dump_flutter/screens/splash/splash.dart';
 import 'package:hrm_dump_flutter/services/background_location_services.dart';
 import 'package:hrm_dump_flutter/services/location_service.dart';
-import 'package:hrm_dump_flutter/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +34,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final AppLifecycleObserver _lifecycleObserver = AppLifecycleObserver();
-  bool _isDarkMode = false;
+  // bool _isDarkMode = false;
 
   @override
   void initState() {
@@ -66,9 +65,9 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      // theme: AppTheme.lightTheme,
+      // darkTheme: AppTheme.darkTheme,
+      // themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home: SplashScreen(),
     );
   }

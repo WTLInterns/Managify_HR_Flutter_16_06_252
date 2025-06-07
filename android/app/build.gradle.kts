@@ -14,7 +14,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.hrmDumpFlutter"
+    namespace = "com.managifyHR.hrmDumpFlutter"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
@@ -28,7 +28,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.hrmDumpFlutter"
+        applicationId = "com.managifyHR.hrmDumpFlutter"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = 1

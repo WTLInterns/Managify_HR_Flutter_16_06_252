@@ -6,6 +6,7 @@ import 'package:hrm_dump_flutter/screens/dashbord/attendances_records.dart';
 import 'package:hrm_dump_flutter/screens/dashbord/leave_screen.dart';
 import 'package:hrm_dump_flutter/screens/dashbord/upload_resume.dart';
 import 'package:hrm_dump_flutter/screens/login/login.dart';
+import 'package:hrm_dump_flutter/screens/profile/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   String employeeFullName = '';
+  String profileImage = '';
   String email = '';
   int subadminId = 0;
   String role = '';
@@ -41,6 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       jobRole = prefs.getString('jobRole') ?? '';
       empimg = prefs.getString('empimg') ?? '';
       registercompanyname = prefs.getString('registercompanyname') ?? '';
+      profileImage = prefs.getString('profileImage') ?? '';
     });
   }
 
@@ -82,6 +85,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             leading: const Icon(Icons.home, color: Colors.blueGrey),
             title: const Text('Home'),
             onTap: () => Navigator.pop(context),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person, color: Colors.blue),
+            title: const Text('Profile'),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen())),
           ),
           ListTile(
             leading: const Icon(Icons.event_available, color: Colors.blue),
@@ -236,54 +244,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 title: Text('Company: $registercompanyname', style: const TextStyle(fontSize: 14)),
               ),
             ),
-            // const SizedBox(height: 24),
-            // const Text(
-            //   'Quick Actions',
-            //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            // ),
-            // const SizedBox(height: 16),
-            // GridView.count(
-            //   shrinkWrap: true,
-            //   physics: const NeverScrollableScrollPhysics(),
-            //   crossAxisCount: 2,
-            //   crossAxisSpacing: 16,
-            //   mainAxisSpacing: 16,
-            //   children: [
-            //     _buildDashboardTile(Icons.flag, 'Daily Goals', DailyGoalsScreen()),
-            //     _buildDashboardTile(Icons.beach_access, 'Request Leave', LeaveScreen()),
-            //     _buildDashboardTile(Icons.list_alt, 'Attendance Records', AttendancesRecordsScreen()),
-            //     _buildDashboardTile(Icons.list, 'Leave Records', LeaveRecordsTable(
-            //       subadminId: subadminId,
-            //       name: employeeFullName,
-            //     )),
-            //     _buildDashboardTile(Icons.work_outline, 'Job Openings', JobOpeningGridScreen()),
-            //     _buildDashboardTile(Icons.upload_file, 'Upload Resume', UploadResumeScreen()),
-            //   ],
-            // ),
           ],
         ),
       ),
     );
   }
-
-  // Widget _buildDashboardTile(IconData icon, String label, Widget targetScreen) {
-  //   return GestureDetector(
-  //     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => targetScreen)),
-  //     child: Card(
-  //       elevation: 4,
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-  //       child: Padding(
-  //         padding: const EdgeInsets.all(16),
-  //         child: Column(
-  //           mainAxisAlignment: MainAxisAlignment.center,
-  //           children: [
-  //             Icon(icon, size: 40, color: Colors.blue.shade700),
-  //             const SizedBox(height: 10),
-  //             Text(label, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w600)),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 }

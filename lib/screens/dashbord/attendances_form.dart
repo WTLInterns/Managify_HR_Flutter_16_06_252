@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hrm_dump_flutter/screens/dashbord/attendances_records.dart';
 import 'package:hrm_dump_flutter/services/location_service.dart';
+import 'package:hrm_dump_flutter/theme/colors.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +20,8 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
   final _formKey = GlobalKey<FormState>();
   final Completer<GoogleMapController> _controller = Completer();
 
+  int count = 0;
+  int leaves = 0;
   int subadminId = 0;
   String employeeFullName = '';
   String jobRole = '';
@@ -54,14 +57,11 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
   final List<String> _workTypeOptions = [
     'Work From Office',
     'Work From Home',
-    'Work From Field'
+    'Work From Field',
   ];
   String? _selectedWorkType;
 
-  static const LatLng companyLocation = LatLng(
-    18.561092,
-    73.944486,
-  );
+  static const LatLng companyLocation = LatLng(18.561092, 73.944486);
 
   static const CameraPosition _kGoogleplex = CameraPosition(
     target: companyLocation,
@@ -83,13 +83,14 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
     _loadSavedAttendanceData();
 
     // Subscribe to location stream
-    _positionSubscription =
-        LocationService.instance.positionStream.listen((position) {
-          setState(() {
-            _currentPosition = position;
-            _updateLocationFields(position);
-          });
-        });
+    _positionSubscription = LocationService.instance.positionStream.listen((
+      position,
+    ) {
+      setState(() {
+        _currentPosition = position;
+        _updateLocationFields(position);
+      });
+    });
   }
 
   @override
@@ -122,8 +123,12 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
 
   Future<void> _loadSavedAttendanceData() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? savedDataJson = prefs.getString('attendance_data_$subadminId');
-    final String? savedTimestamp = prefs.getString('attendance_timestamp_$subadminId');
+    final String? savedDataJson = prefs.getString(
+      'attendance_data_$subadminId',
+    );
+    final String? savedTimestamp = prefs.getString(
+      'attendance_timestamp_$subadminId',
+    );
 
     if (savedDataJson != null && savedTimestamp != null) {
       final DateTime savedTime = DateTime.parse(savedTimestamp);
@@ -133,7 +138,9 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
       if (now.difference(savedTime).inHours < 24) {
         final Map<String, dynamic> savedData = jsonDecode(savedDataJson);
         final String savedDate = savedData['date'] ?? '';
-        final String todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        final String todayDate = DateFormat(
+          'yyyy-MM-dd',
+        ).format(DateTime.now());
 
         // Check if saved data is for today
         if (savedDate == todayDate) {
@@ -151,10 +158,18 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
             _selectedWorkType = savedData['workType'];
 
             // Set attendance state flags
-            _hasInitialPunchIn = savedData['punchInTime'] != null && savedData['punchInTime'].isNotEmpty;
-            _hasLunchOut = savedData['lunchOutTime'] != null && savedData['lunchOutTime'].isNotEmpty;
-            _hasLunchIn = savedData['lunchInTime'] != null && savedData['lunchInTime'].isNotEmpty;
-            _hasPunchOut = savedData['punchOutTime'] != null && savedData['punchOutTime'].isNotEmpty;
+            _hasInitialPunchIn =
+                savedData['punchInTime'] != null &&
+                savedData['punchInTime'].isNotEmpty;
+            _hasLunchOut =
+                savedData['lunchOutTime'] != null &&
+                savedData['lunchOutTime'].isNotEmpty;
+            _hasLunchIn =
+                savedData['lunchInTime'] != null &&
+                savedData['lunchInTime'].isNotEmpty;
+            _hasPunchOut =
+                savedData['punchOutTime'] != null &&
+                savedData['punchOutTime'].isNotEmpty;
 
             // Parse the saved date
             if (savedData['date'] != null) {
@@ -184,8 +199,14 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
       'workType': _workTypeController.text,
     };
 
-    await prefs.setString('attendance_data_$subadminId', jsonEncode(attendanceData));
-    await prefs.setString('attendance_timestamp_$subadminId', DateTime.now().toIso8601String());
+    await prefs.setString(
+      'attendance_data_$subadminId',
+      jsonEncode(attendanceData),
+    );
+    await prefs.setString(
+      'attendance_timestamp_$subadminId',
+      DateTime.now().toIso8601String(),
+    );
 
     setState(() {
       _savedAttendanceData = attendanceData;
@@ -247,9 +268,10 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
         position.longitude,
       );
 
-      String locationName = placemarks.isNotEmpty
-          ? '${placemarks.first.name}, ${placemarks.first.locality}'
-          : 'Unknown Location';
+      String locationName =
+          placemarks.isNotEmpty
+              ? '${placemarks.first.name}, ${placemarks.first.locality}'
+              : 'Unknown Location';
 
       double distance = Geolocator.distanceBetween(
         position.latitude,
@@ -348,7 +370,10 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
   Future<void> _submitAttendance() async {
     if (_currentPosition == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Current location not available')),
+        SnackBar(
+          content: Text('Current location not available'),
+          backgroundColor: AppColor.red,
+        ),
       );
       return;
     }
@@ -373,19 +398,26 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
       "date": _dateController.text.trim(),
       "status": "Present",
       "reason": "",
-      "punchInTime": _inTimeController.text.trim().isEmpty
-          ? null
-          : _inTimeController.text.trim(),
-      "punchOutTime": _outTimeController.text.trim().isEmpty
-          ? null
-          : _outTimeController.text.trim(),
-      "lunchInTime": _lunchInTimeController.text.trim().isEmpty
-          ? null
-          : _lunchInTimeController.text.trim(),
-      "lunchOutTime": _lunchOutTimeController.text.trim().isEmpty
-          ? null
-          : _lunchOutTimeController.text.trim(),
-      "workType": _workTypeController.text.trim().isEmpty ? null : _workTypeController.text.trim(),
+      "punchInTime":
+          _inTimeController.text.trim().isEmpty
+              ? null
+              : _inTimeController.text.trim(),
+      "punchOutTime":
+          _outTimeController.text.trim().isEmpty
+              ? null
+              : _outTimeController.text.trim(),
+      "lunchInTime":
+          _lunchInTimeController.text.trim().isEmpty
+              ? null
+              : _lunchInTimeController.text.trim(),
+      "lunchOutTime":
+          _lunchOutTimeController.text.trim().isEmpty
+              ? null
+              : _lunchOutTimeController.text.trim(),
+      "workType":
+          _workTypeController.text.trim().isEmpty
+              ? null
+              : _workTypeController.text.trim(),
     };
 
     try {
@@ -404,19 +436,26 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
             "date": _dateController.text.trim(),
             "status": "Present",
             "reason": "",
-            "punchInTime": _inTimeController.text.trim().isEmpty
-                ? null
-                : _inTimeController.text.trim(),
-            "punchOutTime": _outTimeController.text.trim().isEmpty
-                ? null
-                : _outTimeController.text.trim(),
-            "lunchInTime": _lunchInTimeController.text.trim().isEmpty
-                ? null
-                : _lunchInTimeController.text.trim(),
-            "lunchOutTime": _lunchOutTimeController.text.trim().isEmpty
-                ? null
-                : _lunchOutTimeController.text.trim(),
-            "workType":  _workTypeController.text.trim().isEmpty ? null : _workTypeController.text.trim(),
+            "punchInTime":
+                _inTimeController.text.trim().isEmpty
+                    ? null
+                    : _inTimeController.text.trim(),
+            "punchOutTime":
+                _outTimeController.text.trim().isEmpty
+                    ? null
+                    : _outTimeController.text.trim(),
+            "lunchInTime":
+                _lunchInTimeController.text.trim().isEmpty
+                    ? null
+                    : _lunchInTimeController.text.trim(),
+            "lunchOutTime":
+                _lunchOutTimeController.text.trim().isEmpty
+                    ? null
+                    : _lunchOutTimeController.text.trim(),
+            "workType":
+                _workTypeController.text.trim().isEmpty
+                    ? null
+                    : _workTypeController.text.trim(),
           };
 
           final putResponse = await http.put(
@@ -429,20 +468,39 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
             print("PUT success: ${putResponse.body}");
           } else {
             print("PUT error: ${putResponse.body}");
+            print('Update failed: ${putResponse.statusCode}');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Update failed: ${putResponse.statusCode}'),
+                content: Text("Please try again"),
+                backgroundColor: AppColor.red,
               ),
             );
           }
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Attendance saved successfully')),
+          SnackBar(
+            content: Text('Attendance saved successfully'),
+            backgroundColor: AppColor.green,
+          ),
         );
 
-        // If all fields are completed, navigate to records screen
+        // If _hasPunchOut and _hasInitialPunchIn fields are not completed, increase leaves
+        if (!_hasPunchOut && !_hasInitialPunchIn) {
+          leaves++;
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('leaves', leaves); // save updated leave count
+        }
+
+
+        // If all fields are completed, navigate to records screen and increase count
         if (_hasPunchOut) {
+          count++;
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('count', count); // save updated count
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => AttendancesRecordsScreen()),
@@ -450,14 +508,22 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
         }
       } else {
         print("POST error: ${postResponse.body}");
+        print('Save Failed: ${postResponse.statusCode}');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Save Failed: ${postResponse.statusCode}')),
+          SnackBar(
+            content: Text("Please try again"),
+            backgroundColor: AppColor.red,
+          ),
         );
       }
     } catch (e) {
       print('Exception: $e');
+      print('Error : $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(
+          content: Text("Please try again"),
+          backgroundColor: AppColor.red,
+        ),
       );
     }
   }
@@ -510,10 +576,12 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
               );
 
               try {
-                bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+                bool serviceEnabled =
+                    await Geolocator.isLocationServiceEnabled();
                 if (!serviceEnabled) throw 'Location services are disabled';
 
-                LocationPermission permission = await Geolocator.checkPermission();
+                LocationPermission permission =
+                    await Geolocator.checkPermission();
                 if (permission == LocationPermission.denied) {
                   permission = await Geolocator.requestPermission();
                   if (permission == LocationPermission.denied)
@@ -527,16 +595,20 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   desiredAccuracy: LocationAccuracy.high,
                 );
 
-                LatLng userLatLng = LatLng(position.latitude, position.longitude);
+                LatLng userLatLng = LatLng(
+                  position.latitude,
+                  position.longitude,
+                );
 
                 List<Placemark> placemarks = await placemarkFromCoordinates(
                   position.latitude,
                   position.longitude,
                 );
 
-                String locationName = placemarks.isNotEmpty
-                    ? '${placemarks.first.name}, ${placemarks.first.locality}'
-                    : 'Unknown Location';
+                String locationName =
+                    placemarks.isNotEmpty
+                        ? '${placemarks.first.name}, ${placemarks.first.locality}'
+                        : 'Unknown Location';
 
                 _calculateAndUpdateDistance(position);
 
@@ -562,10 +634,11 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   companyLocation.longitude,
                 );
 
-                if (_workTypeController.text == workhome || _workTypeController.text == workField) {
+                if (_workTypeController.text == workhome ||
+                    _workTypeController.text == workField) {
                   await _submitAttendance();
                 } else {
-                  if (distance <= 50) {
+                  if (distance <= 25) {
                     await _submitAttendance();
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -577,9 +650,9 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                 }
               } catch (e) {
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(e.toString())),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(e.toString())));
               } finally {
                 setState(() => _isSubmitting = false);
               }
@@ -606,24 +679,26 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
     return DropdownButtonFormField<String>(
       value: _selectedWorkType,
       decoration: InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         hintText: 'Select Work Type',
         enabled: _canEditField('workType'),
       ),
-      items: _workTypeOptions.map((String workType) {
-        return DropdownMenuItem<String>(
-          value: workType,
-          child: Text(workType),
-        );
-      }).toList(),
-      onChanged: _canEditField('workType') ? (String? newValue) {
-        setState(() {
-          _selectedWorkType = newValue;
-          _workTypeController.text = newValue ?? '';
-        });
-      } : null,
+      items:
+          _workTypeOptions.map((String workType) {
+            return DropdownMenuItem<String>(
+              value: workType,
+              child: Text(workType),
+            );
+          }).toList(),
+      onChanged:
+          _canEditField('workType')
+              ? (String? newValue) {
+                setState(() {
+                  _selectedWorkType = newValue;
+                  _workTypeController.text = newValue ?? '';
+                });
+              }
+              : null,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please select a work type';
@@ -682,16 +757,18 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                       CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.grey.shade200,
-                        backgroundImage: (empimg != null && empimg.startsWith('https'))
-                            ? NetworkImage(empimg)
-                            : null,
-                        child: (empimg == null || !empimg.startsWith('https'))
-                            ? const Icon(
-                          Icons.person,
-                          size: 40,
-                          color: Colors.black,
-                        )
-                            : null,
+                        backgroundImage:
+                            (empimg != null && empimg.startsWith('https'))
+                                ? NetworkImage(empimg)
+                                : null,
+                        child:
+                            (empimg == null || !empimg.startsWith('https'))
+                                ? const Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.black,
+                                )
+                                : null,
                       ),
                       SizedBox(width: 20),
                       Column(
@@ -718,7 +795,9 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                     decoration: InputDecoration(
                       hintText: 'Select Date',
                       suffixIcon: Icon(
-                        _canEditField('date') ? Icons.calendar_today : Icons.lock_clock,
+                        _canEditField('date')
+                            ? Icons.calendar_today
+                            : Icons.lock_clock,
                         color: _canEditField('date') ? null : Colors.grey,
                       ),
                       border: OutlineInputBorder(
@@ -726,8 +805,11 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                       ),
                       enabled: _canEditField('date'),
                     ),
-                    validator: (value) =>
-                    value == null || value.isEmpty ? 'Please select a date' : null,
+                    validator:
+                        (value) =>
+                            value == null || value.isEmpty
+                                ? 'Please select a date'
+                                : null,
                   ),
                   SizedBox(height: 16),
                   const Text("PUNCH IN"),
@@ -751,15 +833,18 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   TextFormField(
                     controller: _lunchOutTimeController,
                     readOnly: true,
-                    onTap: () => _selectTime(
-                      context: context,
-                      controller: _lunchOutTimeController,
-                      fieldType: 'lunchOut',
-                    ),
+                    onTap:
+                        () => _selectTime(
+                          context: context,
+                          controller: _lunchOutTimeController,
+                          fieldType: 'lunchOut',
+                        ),
                     decoration: InputDecoration(
                       hintText: 'Select Time',
                       suffixIcon: Icon(
-                        _canEditField('lunchOut') ? Icons.access_time : Icons.lock_clock,
+                        _canEditField('lunchOut')
+                            ? Icons.access_time
+                            : Icons.lock_clock,
                         color: _canEditField('lunchOut') ? null : Colors.grey,
                       ),
                       border: OutlineInputBorder(
@@ -773,15 +858,18 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   TextFormField(
                     controller: _lunchInTimeController,
                     readOnly: true,
-                    onTap: () => _selectTime(
-                      context: context,
-                      controller: _lunchInTimeController,
-                      fieldType: 'lunchIn',
-                    ),
+                    onTap:
+                        () => _selectTime(
+                          context: context,
+                          controller: _lunchInTimeController,
+                          fieldType: 'lunchIn',
+                        ),
                     decoration: InputDecoration(
                       hintText: 'Select Time',
                       suffixIcon: Icon(
-                        _canEditField('lunchIn') ? Icons.access_time : Icons.lock_clock,
+                        _canEditField('lunchIn')
+                            ? Icons.access_time
+                            : Icons.lock_clock,
                         color: _canEditField('lunchIn') ? null : Colors.grey,
                       ),
                       border: OutlineInputBorder(
@@ -795,15 +883,18 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   TextFormField(
                     controller: _outTimeController,
                     readOnly: true,
-                    onTap: () => _selectTime(
-                      context: context,
-                      controller: _outTimeController,
-                      fieldType: 'punchOut',
-                    ),
+                    onTap:
+                        () => _selectTime(
+                          context: context,
+                          controller: _outTimeController,
+                          fieldType: 'punchOut',
+                        ),
                     decoration: InputDecoration(
                       hintText: 'Select Time',
                       suffixIcon: Icon(
-                        _canEditField('punchOut') ? Icons.access_time : Icons.lock_clock,
+                        _canEditField('punchOut')
+                            ? Icons.access_time
+                            : Icons.lock_clock,
                         color: _canEditField('punchOut') ? null : Colors.grey,
                       ),
                       border: OutlineInputBorder(
@@ -819,7 +910,8 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                     readOnly: true,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'Distance will be calculated when you click Save',
+                      hintText:
+                          'Distance will be calculated when you click Save',
                     ),
                   ),
                   SizedBox(height: 16),
@@ -830,8 +922,8 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   _currentPosition == null
                       ? Text("Location not available")
                       : Text(
-                    '${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
-                  ),
+                        '${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
+                      ),
                   Container(
                     height: 200,
                     decoration: BoxDecoration(border: Border.all()),
@@ -840,9 +932,7 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildButtons(),
-                    ],
+                    children: [_buildButtons()],
                   ),
                 ],
               ),

@@ -1,4 +1,4 @@
-package com.example.hrmDumpFlutter
+package com.managifyHR.hrmDumpFlutter
 
 import io.flutter.embedding.android.FlutterActivity
 

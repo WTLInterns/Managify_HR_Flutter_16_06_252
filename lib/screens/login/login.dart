@@ -64,6 +64,15 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('companylogo', responseData['subadmin']['companylogo'] ?? '');
         await prefs.setString('email', email);
         await prefs.setInt('empId', responseData['empId'] ?? 0);
+        await prefs.setInt('phone', responseData['phone'] ?? 0);
+        await prefs.setString('firstName', responseData['firstName'] ?? '');
+        await prefs.setString('lastName', responseData['lastName'] ?? '');
+        await prefs.setString('gender', responseData['gender'] ?? '');
+        await prefs.setString('address', responseData['address'] ?? '');
+        await prefs.setString('birthDate', responseData['birthDate'] ?? '');
+        await prefs.setString('panCard', responseData['panCard'] ?? '');
+        await prefs.setString('bloodGroup', responseData['bloodGroup'] ?? '');
+        await prefs.setString('aadharNo', responseData['aadharNo'] ?? '');
 
         print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv');
 
