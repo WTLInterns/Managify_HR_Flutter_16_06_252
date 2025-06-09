@@ -5,6 +5,7 @@ import 'package:hrm_dump_flutter/res/app_colour.dart';
 import 'package:hrm_dump_flutter/res/app_styles.dart';
 import 'package:hrm_dump_flutter/screens/login/login.dart';
 import 'package:hrm_dump_flutter/screens/login/reset_password.dart';
+import 'package:hrm_dump_flutter/theme/colors.dart';
 import 'package:http/http.dart' as http;
 
 class ForgotPassword extends StatefulWidget {
@@ -65,9 +66,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColours.blue2,
+      backgroundColor: AppColor.blue2,
       appBar: AppBar(
-        backgroundColor: AppColours.blue2,
+        backgroundColor: AppColor.blue2,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
@@ -81,14 +82,14 @@ class _ForgotPasswordState extends State<ForgotPassword> {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColours.blue,
+                    color: AppColor.blue,
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   height: 35,
                   child: IconButton(
                     onPressed: () {},
                     icon: Icon(Icons.key,
-                        size: 25, color: AppColours.onPrimary),
+                        size: 25, color: AppColor.white),
                   ),
                 ),
               ),
@@ -104,7 +105,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 child: SizedBox(
                   width: 70,
                   child: Divider(
-                    color: AppColours.blue,
+                    color: AppColor.blue,
                     thickness: 5.0,
                   ),
                 ),
@@ -120,7 +121,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                   elevation: 8,
-                  color: AppColours.fill3,
+                  color: AppColor.fill3,
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
@@ -138,7 +139,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 );
                               },
                               icon: const Icon(Icons.arrow_back),
-                              color: AppColours.blue,
+                              color: AppColor.blue,
                             ),
                             const SizedBox(width: 5),
                             Text("Back to Login",
@@ -176,7 +177,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                               borderRadius: BorderRadius.circular(10.0),
                             ),
                             prefixIcon: const Icon(Icons.email),
-                            prefixIconColor: AppColours.blue,
+                            prefixIconColor: AppColor.blue,
                             contentPadding:
                                 const EdgeInsets.fromLTRB(20, 15, 20, 15),
                             hintText: "Enter your email",
@@ -193,7 +194,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                         MaterialButton(
                           height: 55,
                           minWidth: double.infinity,
-                          color: AppColours.blue,
+                          color: AppColor.blue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),

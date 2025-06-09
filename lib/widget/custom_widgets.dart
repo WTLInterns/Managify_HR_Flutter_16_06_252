@@ -11,26 +11,32 @@ class UiHelper {
     ButtonStyle? style,
     Color? backgroundColor,
     Color? textColor,
-    // Color? borderColor,
     FontWeight? fontWeight,
     Icon? icon,
-    double radius = 6.0,
+    double radius = 12.0,
     double? height,
     double? width,
+    LinearGradient? gradient,
   }) {
-    return SizedBox(
+    return Container(
       width: width,
       height: height,
+      decoration: gradient != null
+          ? BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(radius),
+      )
+          : null,
       child: ElevatedButton(
         onPressed: callback,
         style: style ??
             ElevatedButton.styleFrom(
-              backgroundColor: backgroundColor ?? AppColor.deepPurple,
+              backgroundColor: gradient != null
+                  ? Colors.transparent
+                  : backgroundColor ?? AppColor.deepPurple,
+              shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(radius),
-                // side: BorderSide(
-                //   color: borderColor ?? AppColor.primary,
-                // ),
               ),
             ),
         child: Row(
@@ -38,9 +44,7 @@ class UiHelper {
           children: [
             if (icon != null) ...[
               icon,
-              const SizedBox(
-                width: 5,
-              ),
+              const SizedBox(width: 5),
             ],
             Text(
               buttonName ?? '',

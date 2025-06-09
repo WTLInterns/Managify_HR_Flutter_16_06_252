@@ -25,6 +25,24 @@ class AppColor {
   static const color = Color(0xFFF1F4F9);
   static const cartColor = Color(0xFF8AB144);
 
+  static const Color primaryLight = Color(0xFF818CF8);
+  static const Color primaryDark = Color(0xFF4F46E5);
+  static const Color backgroundColor = Color(0xFFF8FAFC);
+  static const Color indigo = Color(0xFF6366F1);
+  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color accentColor = Color(0xFF10B981); // Emerald
+  static const Color borderColor = Color(0xFFE2E8F0);
+
+  static const Color fill3 = Color.fromARGB(115, 45, 39, 39);
+  static const Color fill4 = Color(0xFF6200EA); // Purple
+  static const Color blue2 = Color(0XFF191970);
+  static const Color primaryVariant = Color(0xFF3700B3);//0000FF
+  static const Color gray = Color(0xFF808080);
+
+
+
+
 
   static const yellow = Color(0xFFffcb66);
   static const green = Color(0xFF0C7F0C);

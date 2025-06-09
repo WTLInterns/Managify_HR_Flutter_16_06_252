@@ -672,13 +672,16 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
   }
 
   Widget _buildGoogleMap() {
-    return GoogleMap(
-      initialCameraPosition: _kGoogleplex,
-      markers: Set<Marker>.of(_markers),
-      polylines: _polylines,
-      onMapCreated: (GoogleMapController controller) {
-        _controller.complete(controller);
-      },
+    return GestureDetector(
+      onPanUpdate: (details){},
+      child: GoogleMap(
+        initialCameraPosition: _kGoogleplex,
+        markers: Set<Marker>.of(_markers),
+        polylines: _polylines,
+        onMapCreated: (GoogleMapController controller) {
+          _controller.complete(controller);
+        },
+      ),
     );
   }
 
@@ -730,6 +733,7 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: SingleChildScrollView(
+              physics: ClampingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -967,10 +971,13 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                       : Text(
                         '${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
                       ),
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(border: Border.all()),
-                    child: _buildGoogleMap(),
+                  AbsorbPointer(
+                    absorbing: false,
+                    child: Container(
+                      height: 200,
+                      decoration: BoxDecoration(border: Border.all()),
+                      child: _buildGoogleMap(),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Row(

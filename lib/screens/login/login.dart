@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:hrm_dump_flutter/screens/dashbord/dashboard_screen.dart';
+import 'package:hrm_dump_flutter/theme/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:hrm_dump_flutter/res/app_colour.dart';
 import 'package:hrm_dump_flutter/res/app_styles.dart';
 import 'package:hrm_dump_flutter/screens/login/forget_password.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -117,9 +117,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColours.blue2,
+      backgroundColor: AppColor.blue2,
       appBar: AppBar(
-        backgroundColor: AppColours.blue2,
+        backgroundColor: AppColor.blue2,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
@@ -134,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Container(
                   height: 35,
                   decoration: BoxDecoration(
-                    color: AppColours.blue,
+                    color: AppColor.blue,
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: IconButton(
@@ -142,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     icon: Icon(
                       Icons.balcony_outlined,
                       size: 25,
-                      color: AppColours.onPrimary,
+                      color: AppColor.white,
                     ),
                   ),
                 ),
@@ -159,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: SizedBox(
                   width: 70,
                   child: Divider(
-                    color: AppColours.blue,
+                    color: AppColor.blue,
                     thickness: 5.0,
                   ),
                 ),
@@ -170,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Form(
                 key: _formKey,
                 child: Card(
-                  color: AppColours.fill3,
+                  color: AppColor.fill3,
                   elevation: 8,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16.0),
@@ -197,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             hintText: "Enter your email",
                             hintStyle: AppTextStyles.hintText,
                             prefixIcon: const Icon(Icons.email),
-                            prefixIconColor: AppColours.blue,
+                            prefixIconColor: AppColor.blue,
                             contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
                             enabledBorder: OutlineInputBorder(
                               borderSide: const BorderSide(color: Color.fromARGB(115, 108, 105, 105)),
@@ -224,11 +224,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             hintText: "Enter your password",
                             hintStyle: AppTextStyles.hintText,
                             prefixIcon: const Icon(Icons.lock),
-                            prefixIconColor: AppColours.blue,
+                            prefixIconColor: AppColor.blue,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureText ? Icons.visibility : Icons.visibility_off,
-                                color: AppColours.onPrimary,
+                                color: AppColor.white,
                               ),
                               onPressed: _toggleObscure,
                             ),
@@ -249,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         MaterialButton(
                           height: 55,
                           minWidth: double.infinity,
-                          color: AppColours.blue,
+                          color: AppColor.blue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),

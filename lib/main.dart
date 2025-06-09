@@ -4,6 +4,7 @@ import 'package:hrm_dump_flutter/res/app_colour.dart';
 import 'package:hrm_dump_flutter/screens/splash/splash.dart';
 import 'package:hrm_dump_flutter/services/background_location_services.dart';
 import 'package:hrm_dump_flutter/services/location_service.dart';
+import 'package:hrm_dump_flutter/theme/colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,7 @@ void main() async {
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: AppColours.onSecondary,
+      statusBarColor: AppColor.black,
       statusBarIconBrightness: Brightness.light,
     ),
   );

@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hrm_dump_flutter/screens/login/login.dart';
 import 'package:hrm_dump_flutter/screens/profile/employee_details.dart';
+import 'package:hrm_dump_flutter/screens/profile/privacy/privacy_policy.dart';
+import 'package:hrm_dump_flutter/screens/profile/privacy/term_&_condition.dart';
 import 'package:hrm_dump_flutter/theme/colors.dart';
 import 'package:hrm_dump_flutter/widget/custom_widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -55,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     _loadUserData();
     _loadProfileImage();
     resetMonthlyStatsIfNeeded().then((_) {
-      setState(() {});      // Refresh UI after loading/resetting
+      setState(() {}); // Refresh UI after loading/resetting
     });
 
     _animationController = AnimationController(
@@ -401,11 +404,14 @@ class _ProfileScreenState extends State<ProfileScreen>
     // empId = prefs.getInt('empId') ?? 0;
   }
 
-
   Widget _buildProfileStats() {
     final stats = [
       {'label': 'EmpId', 'value': empId.toString(), 'icon': Icons.badge},
-      {'label': 'Attendance', 'value': count.toString(), 'icon': Icons.event_available},
+      {
+        'label': 'Attendance',
+        'value': count.toString(),
+        'icon': Icons.event_available,
+      },
       {'label': 'Leaves', 'value': leaves.toString(), 'icon': Icons.event_busy},
     ];
 
@@ -590,8 +596,11 @@ class _ProfileScreenState extends State<ProfileScreen>
             Center(
               child: UiHelper.customButton(
                 buttonName: 'Edit',
-                width: 200,
+                width: 160,
                 height: 50,
+                gradient: LinearGradient(
+                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                ),
                 callback:
                     () => Navigator.push(
                       context,
@@ -628,8 +637,18 @@ class _ProfileScreenState extends State<ProfileScreen>
               _locationEnabled,
               (value) => setState(() => _locationEnabled = value),
             ),
-            _buildActionRow(Icons.star_rate, 'Rate Us', 'Give us app rating & Feedback'),
-            _buildActionRow(Icons.storage, 'Storage', '2.4 GB used'),
+            _buildActionRow(
+              Icons.star_rate,
+              'Rate Us',
+              'Give us app rating & Feedback',
+            ),
+            _buildActionRow(
+              Icons.phone_iphone,
+              'Follow Us On Social Media',
+              'Join our community',
+              urlToLaunch:
+                  'https://www.instagram.com/webutsav?igsh=dHRtb24wYjNsY2ly',
+            ),
           ]),
           SizedBox(height: 20),
         ],
@@ -866,11 +885,30 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Column(
         children: [
           _buildInfoCard('Privacy Controls', [
-            _buildActionRow(Icons.article, 'Term & Condition', 'Review our policies'),
-            _buildActionRow(Icons.lock, 'Privacy Policy', 'Review privacy information'),
-            _buildActionRow(Icons.language, 'Visit Our Website', 'View your activity',
+            _buildActionRow(
+              Icons.article,
+              'Term & Condition',
+              'What you need to know',
+              destinationScreen: TermsAndConditionsScreen(),
             ),
-            _buildActionRow(Icons.phone_iphone, 'Follow Us On Social Media', 'Join our community'),
+            _buildActionRow(
+              Icons.lock,
+              'Privacy Policy',
+              'Review privacy information',
+              destinationScreen: PrivacyPolicyScreen(),
+            ),
+            _buildActionRow(
+              Icons.fact_check,
+              'Leave Policy	',
+              "Company Leave Guidelines",
+            ),
+            _buildActionRow(
+              Icons.language,
+              'Visit Our Website',
+              'View your activity',
+              urlToLaunch:
+              'https://webutsav.com',
+            ),
           ]),
         ],
       ),
@@ -1015,14 +1053,29 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Widget _buildActionRow(
-    IconData icon,
-    String title,
-    String subtitle, {
-    bool isDestructive = false,
-  }) {
+      IconData icon,
+      String title,
+      String subtitle, {
+        bool isDestructive = false,
+        String? urlToLaunch,
+        Widget? destinationScreen, // <-- Add this
+      }) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
         HapticFeedback.lightImpact();
+
+        if (destinationScreen != null) {
+          // Navigate to new screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => destinationScreen),
+          );
+        } else if (urlToLaunch != null) {
+          final Uri url = Uri.parse(urlToLaunch);
+          if (await canLaunchUrl(url)) {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          }
+        }
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -1031,10 +1084,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             Container(
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color:
-                    isDestructive
-                        ? Colors.red.withOpacity(0.1)
-                        : Color(0xFF667eea).withOpacity(0.1),
+                color: isDestructive
+                    ? Colors.red.withOpacity(0.1)
+                    : Color(0xFF667eea).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -1070,6 +1122,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
     );
   }
+
 
   Widget _buildSwitchRow(
     IconData icon,

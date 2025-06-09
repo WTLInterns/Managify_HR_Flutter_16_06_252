@@ -32,7 +32,9 @@ class _JobOpeningGridScreenState extends State<JobOpeningGridScreen> {
     empId = prefs.getInt('empId') ?? 0;
 
     try {
-      final response = await http.get(Uri.parse('https://api.managifyhr.com/api/openings/$empId'));
+      final response = await http.get(
+        Uri.parse('https://api.managifyhr.com/api/openings/$empId'),
+      );
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
@@ -94,86 +96,110 @@ class _JobOpeningGridScreenState extends State<JobOpeningGridScreen> {
           ),
           const SizedBox(height: 8),
           _buildJobField("Location", job.location ?? "-", Icons.location_on),
-          _buildJobField("Positions", job.positions?.toStringAsFixed(0) ?? "-", Icons.people),
+          _buildJobField(
+            "Positions",
+            job.positions?.toStringAsFixed(0) ?? "-",
+            Icons.people,
+          ),
           _buildJobField("Experience", job.exprience ?? "-", Icons.school),
           const Spacer(),
           ElevatedButton.icon(
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (_) => Dialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.deepPurple.shade100, Colors.white],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                builder:
+                    (_) => Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
                       ),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_companyLogo != null)
-                            Center(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  _companyLogo!,
-                                  height: 40,
-                                  width: 40,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-                                ),
-                              ),
-                            ),
-                          const SizedBox(height: 8),
-                          Text(
-                            job.role ?? "Job Details",
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
-                            ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.deepPurple.shade100, Colors.white],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          const SizedBox(height: 12),
-                          _buildDialogRow("Company", job.subadmin?.registercompanyname ?? "-"),
-                          _buildDialogRow('Role', job.role ?? "-"),
-                          _buildDialogRow("Experience", job.exprience ?? "-"),
-                          _buildDialogRow("Location", job.location ?? "-"),
-                          _buildDialogRow("Work Type", job.workType ?? "-"),
-                          _buildDialogRow("Positions", job.positions?.toStringAsFixed(0) ?? "-"),
-                          _buildDialogRow("Site Mode", job.siteMode ?? "-"),
-                          _buildDialogRow("Description", job.description ?? "-"),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        padding: const EdgeInsets.all(20),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              UiHelper.customButton(
-                                callback: () => Navigator.of(context).pop(),
-                                buttonName: "Cancel",
-                              ),
-                              const SizedBox(width: 8),
-                              UiHelper.customButton(
-                                callback: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const UploadResumeScreen(),
+                              if (_companyLogo != null)
+                                Center(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      _companyLogo!,
+                                      height: 40,
+                                      width: 40,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(Icons.broken_image),
+                                    ),
                                   ),
                                 ),
-                                buttonName: "Upload Resume",
+                              const SizedBox(height: 8),
+                              Text(
+                                job.role ?? "Job Details",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.deepPurple,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildDialogRow(
+                                "Company",
+                                job.subadmin?.registercompanyname ?? "-",
+                              ),
+                              _buildDialogRow('Role', job.role ?? "-"),
+                              _buildDialogRow(
+                                "Experience",
+                                job.exprience ?? "-",
+                              ),
+                              _buildDialogRow("Location", job.location ?? "-"),
+                              _buildDialogRow("Work Type", job.workType ?? "-"),
+                              _buildDialogRow(
+                                "Positions",
+                                job.positions?.toStringAsFixed(0) ?? "-",
+                              ),
+                              _buildDialogRow("Site Mode", job.siteMode ?? "-"),
+                              _buildDialogRow(
+                                "Description",
+                                job.description ?? "-",
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  UiHelper.customButton(
+                                    callback: () => Navigator.of(context).pop(),
+                                    buttonName: "Cancel",
+                                  ),
+                                  const SizedBox(width: 8),
+                                  UiHelper.customButton(
+                                    callback:
+                                        () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    const UploadResumeScreen(),
+                                          ),
+                                        ),
+                                    buttonName: "Upload Resume",
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
               );
             },
             icon: const Icon(Icons.send),
@@ -181,7 +207,9 @@ class _JobOpeningGridScreenState extends State<JobOpeningGridScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.deepPurple,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               minimumSize: const Size.fromHeight(36),
               padding: const EdgeInsets.symmetric(vertical: 8),
             ),
@@ -236,36 +264,37 @@ class _JobOpeningGridScreenState extends State<JobOpeningGridScreen> {
           style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-          ? Center(
-        child: Text(
-          _errorMessage!,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.red),
-        ),
-      )
-          : _jobOpenings.isEmpty
-          ? const Center(
-        child: Text(
-          'Job Openings are not Available',
-          style: TextStyle(fontSize: 16),
-        ),
-      )
-          : GridView.builder(
-        padding: const EdgeInsets.all(12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.76,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: _jobOpenings.length,
-        itemBuilder: (context, index) {
-          return _buildJobCard(context, _jobOpenings[index]);
-        },
-      ),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage != null
+              ? Center(
+                child: Text(
+                  _errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              )
+              : _jobOpenings.isEmpty
+              ? const Center(
+                child: Text(
+                  'Job Openings are not Available',
+                  style: TextStyle(fontSize: 16),
+                ),
+              )
+              : GridView.builder(
+                padding: const EdgeInsets.all(12),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.76,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: _jobOpenings.length,
+                itemBuilder: (context, index) {
+                  return _buildJobCard(context, _jobOpenings[index]);
+                },
+              ),
     );
   }
 }

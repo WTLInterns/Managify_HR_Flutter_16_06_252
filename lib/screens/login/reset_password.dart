@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:hrm_dump_flutter/res/app_colour.dart';
 import 'package:hrm_dump_flutter/res/app_styles.dart';
 import 'package:hrm_dump_flutter/screens/login/login.dart';
+import 'package:hrm_dump_flutter/theme/colors.dart';
 import 'package:http/http.dart' as http;
 
 class ResetPassword extends StatefulWidget {
@@ -68,9 +68,9 @@ class _ResetPasswordState extends State<ResetPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColours.blue2,
+      backgroundColor: AppColor.blue2,
       appBar: AppBar(
-        backgroundColor: AppColours.blue2,
+        backgroundColor: AppColor.blue2,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
@@ -84,7 +84,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                 child: Container(
                   height: 35,
                   decoration: BoxDecoration(
-                    color: AppColours.blue,
+                    color: AppColor.blue,
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: IconButton(
@@ -92,7 +92,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                     icon: Icon(
                       Icons.lock,
                       size: 25,
-                      color: AppColours.onPrimary,
+                      color: AppColor.white,
                     ),
                   ),
                 ),
@@ -108,7 +108,7 @@ class _ResetPasswordState extends State<ResetPassword> {
               Center(
                 child: SizedBox(
                   width: 70,
-                  child: Divider(color: AppColours.blue, thickness: 5.0),
+                  child: Divider(color: AppColor.blue, thickness: 5.0),
                 ),
               ),
 
@@ -122,7 +122,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                   elevation: 8,
-                  color: AppColours.fill3,
+                  color: AppColor.fill3,
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
@@ -140,7 +140,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                 );
                               },
                               icon: const Icon(Icons.arrow_back),
-                              color: AppColours.blue,
+                              color: AppColor.blue,
                             ),
                             const SizedBox(width: 5),
                             Text("Back", style: AppTextStyles.textButton),
@@ -160,7 +160,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                           style: AppTextStyles.appbar,
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.key),
-                            prefixIconColor: AppColours.blue,
+                            prefixIconColor: AppColor.blue,
                             hintText: "Enter otp code sent to your email",
                             hintStyle: AppTextStyles.hintText,
                             contentPadding: const EdgeInsets.fromLTRB(
@@ -199,7 +199,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                           style: AppTextStyles.appbar,
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.lock),
-                            prefixIconColor: AppColours.blue,
+                            prefixIconColor: AppColor.blue,
                             hintText: "Enter new password",
                             hintStyle: AppTextStyles.hintText,
                             suffixIcon: IconButton(
@@ -207,7 +207,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                 _obscureText
                                     ? Icons.visibility
                                     : Icons.visibility_off,
-                                color: AppColours.onPrimary,
+                                color: AppColor.white,
                               ),
                               onPressed: _toggle,
                             ),
@@ -256,7 +256,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                           style: AppTextStyles.appbar,
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.lock),
-                            prefixIconColor: AppColours.blue,
+                            prefixIconColor: AppColor.blue,
                             hintText: "Enter confirm password",
                             hintStyle: AppTextStyles.hintText,
                             suffixIcon: IconButton(
@@ -264,7 +264,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                 _obscureText
                                     ? Icons.visibility
                                     : Icons.visibility_off,
-                                color: AppColours.onPrimary,
+                                color: AppColor.white,
                               ),
                               onPressed: _toggle,
                             ),
@@ -295,7 +295,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                         MaterialButton(
                           height: 55,
                           minWidth: double.infinity,
-                          color: AppColours.blue,
+                          color: AppColor.blue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),
