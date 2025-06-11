@@ -197,6 +197,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     return SliverAppBar(
       expandedHeight: 320,
       floating: false,
+
+
       pinned: true,
       elevation: 0,
       backgroundColor: Colors.transparent,

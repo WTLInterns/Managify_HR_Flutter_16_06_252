@@ -44,15 +44,22 @@ class _LeaveScreenState extends State<LeaveScreen> {
     });
 
     print('LOADED USER DATA:');
-    print('registercompanyname: $registercompanyname (${registercompanyname.runtimeType})');
-    print('employeeFullName: $employeeFullName (${employeeFullName.runtimeType})');
+    print(
+      'registercompanyname: $registercompanyname (${registercompanyname.runtimeType})',
+    );
+    print(
+      'employeeFullName: $employeeFullName (${employeeFullName.runtimeType})',
+    );
     print('subadminId: $subadminId (${subadminId.runtimeType})');
   }
 
   Future<void> _selectDate({required bool isFrom}) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: isFrom ? selectedFromDate ?? DateTime.now() : selectedToDate ?? DateTime.now(),
+      initialDate:
+          isFrom
+              ? selectedFromDate ?? DateTime.now()
+              : selectedToDate ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2030),
     );
@@ -74,9 +81,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
     if (_fromDateController.text.isEmpty ||
         _toDateController.text.isEmpty ||
         _reasonController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
       return;
     }
 
@@ -92,10 +99,12 @@ class _LeaveScreenState extends State<LeaveScreen> {
         'fromDate': fromDate,
         'toDate': toDate,
         'reason': _reasonController.text,
-        'status': 'Pending'
+        'status': 'Pending',
       };
 
-      final uri = Uri.parse('https://api.managifyhr.com/api/leaveform/$subadminId/$employeeFullName');
+      final uri = Uri.parse(
+        'https://api.managifyhr.com/api/leaveform/$subadminId/$employeeFullName',
+      );
       final response = await http.post(
         uri,
         headers: {'Content-Type': 'application/json'},
@@ -117,19 +126,25 @@ class _LeaveScreenState extends State<LeaveScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => LeaveRecordsTable(name: employeeFullName,subadminId: subadminId,showPopup: false),
+            builder:
+                (_) => LeaveRecordsTable(
+                  name: employeeFullName,
+                  subadminId: subadminId,
+                  showPopup: false,
+                ),
           ),
         );
-
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit leave request: ${response.body}')),
+          SnackBar(
+            content: Text('Failed to submit leave request: ${response.body}'),
+          ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -141,13 +156,21 @@ class _LeaveScreenState extends State<LeaveScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue.shade700,
-        elevation: 4,
-        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Leave Application',
           style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        centerTitle: true,
+        elevation: 4,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -167,18 +190,27 @@ class _LeaveScreenState extends State<LeaveScreen> {
                 children: [
                   Text(
                     "Employee: $employeeFullName",
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     "Company Name: $registercompanyname",
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-            const Text("From Date", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            const Text(
+              "From Date",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _fromDateController,
@@ -187,11 +219,16 @@ class _LeaveScreenState extends State<LeaveScreen> {
               decoration: InputDecoration(
                 hintText: 'Select start date',
                 suffixIcon: const Icon(Icons.calendar_today),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            const Text("To Date", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            const Text(
+              "To Date",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _toDateController,
@@ -200,29 +237,47 @@ class _LeaveScreenState extends State<LeaveScreen> {
               decoration: InputDecoration(
                 hintText: 'Select end date',
                 suffixIcon: const Icon(Icons.calendar_today),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            const Text("Reason", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            const Text(
+              "Reason",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _reasonController,
               maxLines: 5,
               decoration: InputDecoration(
                 hintText: 'Enter reason for leave',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
             const SizedBox(height: 30),
-            SizedBox(
+            Container(
               width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _submitLeaveRequest,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
                   padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
@@ -231,7 +286,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

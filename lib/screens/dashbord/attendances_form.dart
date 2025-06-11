@@ -722,10 +722,22 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue.shade700,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Attendance Form',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text('Attendance Form', style: TextStyle(color: Colors.white)),
+        elevation: 4,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: SafeArea(
         child: Form(

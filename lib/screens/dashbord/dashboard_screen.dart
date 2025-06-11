@@ -142,13 +142,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       drawer: _buildDrawer(),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Padding(
-          padding: EdgeInsets.only(left: 60),
-          child: Text('Dashboard', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Dashboard',
+          style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.blue.shade700,
+        centerTitle: true, // Instead of left padding, use this for centering
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 4,
       ),
+
       body: _buildDashboardContent(),
       bottomNavigationBar: Container(
         height: 63,

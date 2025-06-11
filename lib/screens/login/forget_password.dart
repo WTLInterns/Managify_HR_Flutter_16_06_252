@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:hrm_dump_flutter/res/app_colour.dart';
 import 'package:hrm_dump_flutter/res/app_styles.dart';
 import 'package:hrm_dump_flutter/screens/login/login.dart';
 import 'package:hrm_dump_flutter/screens/login/reset_password.dart';

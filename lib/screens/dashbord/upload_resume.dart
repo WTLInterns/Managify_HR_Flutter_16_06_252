@@ -112,13 +112,21 @@ class _UploadResumeScreenState extends State<UploadResumeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple,
-        elevation: 4,
-        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Upload Resume',
           style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        centerTitle: true,
+        elevation: 4,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
         ),
       ),
       body: Center(
@@ -157,8 +165,8 @@ class _UploadResumeScreenState extends State<UploadResumeScreen> {
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
                           onPressed: _pickResume,
-                          icon: const Icon(Icons.upload_file),
-                          label: const Text("Pick Resume"),
+                          icon: const Icon(Icons.upload_file,color: AppColor.black,),
+                          label: const Text("Pick Resume",style: TextStyle(color: AppColor.black),),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColor.purple,
                           ),
@@ -174,6 +182,11 @@ class _UploadResumeScreenState extends State<UploadResumeScreen> {
                         UiHelper.customButton(
                           callback: _submitApplication,
                           buttonName: "Submit Application",
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                         ),
                       ],
                     ),
