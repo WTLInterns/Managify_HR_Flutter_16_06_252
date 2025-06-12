@@ -252,7 +252,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
               controller: _reasonController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: 'Enter reason for leave',
+                hintText: 'Enter Small reason for leave',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),

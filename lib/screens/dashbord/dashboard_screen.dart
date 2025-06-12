@@ -98,18 +98,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(
             padding: EdgeInsets.all(isSelected ? 8 : 6), // Reduced padding
             decoration: BoxDecoration(
-              color: isSelected
-                  ? Colors.white.withOpacity(0.25)
-                  : Colors.transparent,
+              color:
+                  isSelected
+                      ? Colors.white.withOpacity(0.25)
+                      : Colors.transparent,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: isSelected ? [
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.2),
-                  blurRadius: 8.0, // Reduced blur
-                  offset: Offset(0, 2), // Reduced offset
-                  spreadRadius: 0,
-                ),
-              ] : null,
+              boxShadow:
+                  isSelected
+                      ? [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.2),
+                          blurRadius: 8.0, // Reduced blur
+                          offset: Offset(0, 2), // Reduced offset
+                          spreadRadius: 0,
+                        ),
+                      ]
+                      : null,
             ),
             child: AnimatedScale(
               duration: Duration(milliseconds: 300),
@@ -117,7 +121,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               scale: isSelected ? 1.1 : 1.0,
               child: Icon(
                 icon,
-                color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+                color:
+                    isSelected ? Colors.white : Colors.white.withOpacity(0.7),
                 size: isSelected ? 24 : 22, // Reduced icon size
               ),
             ),
@@ -142,11 +147,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       drawer: _buildDrawer(),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Dashboard',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true, // Instead of left padding, use this for centering
+        title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+        // Instead of left padding, use this for centering
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -210,17 +213,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildDrawer() {
     final bool hasValidNetworkImage = _isValidUrl(empimg);
-    final bool hasLocalImage = profileImage.isNotEmpty && File(profileImage).existsSync();
+    final bool hasLocalImage =
+        profileImage.isNotEmpty && File(profileImage).existsSync();
 
-    // Get screen dimensions and safe area insets
     final mediaQuery = MediaQuery.of(context);
     final appBarHeight = AppBar().preferredSize.height;
     final statusBarHeight = mediaQuery.padding.top;
     final bottomNavHeight = 63.0;
     final bottomSafeArea = mediaQuery.padding.bottom;
 
-    // Calculate available height for the drawer
-    final availableHeight = mediaQuery.size.height -
+    final availableHeight =
+        mediaQuery.size.height -
         appBarHeight -
         statusBarHeight -
         bottomNavHeight -
@@ -233,11 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade50,
-              Colors.white,
-              Colors.grey.shade50,
-            ],
+            colors: [Colors.blue.shade50, Colors.white, Colors.grey.shade50],
           ),
         ),
         child: ListView(
@@ -249,48 +248,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
               icon: Icons.home_rounded,
               title: 'Home',
               color: Colors.indigo,
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                // Just close drawer for home
+              },
             ),
             _buildAnimatedTile(
               icon: Icons.event_available_rounded,
               title: 'Attendance Form',
               color: Colors.blue,
-              onTap: () => Navigator.push(
-                context,
-                _createSlidePageRoute(AttendanceFormPage()),
-              ),
+              onTap: () => _navigateToScreen(AttendanceFormPage()),
             ),
             _buildAnimatedTile(
               icon: Icons.list_alt_rounded,
               title: 'Attendance Records',
               color: Colors.cyan,
-              onTap: () => Navigator.push(
-                context,
-                _createSlidePageRoute(AttendancesRecordsScreen()),
-              ),
+              onTap: () => _navigateToScreen(AttendancesRecordsScreen()),
             ),
             _buildAnimatedTile(
               icon: Icons.event_busy_rounded,
               title: 'Leave',
               color: Colors.orange,
-              onTap: () => Navigator.push(
-                context,
-                _createSlidePageRoute(LeaveScreen()),
-              ),
+              onTap: () => _navigateToScreen(LeaveScreen()),
             ),
             _buildAnimatedTile(
               icon: Icons.assignment_turned_in_rounded,
               title: 'Leave Records',
               color: Colors.amber,
-              onTap: () => Navigator.push(
-                context,
-                _createSlidePageRoute(
-                  LeaveRecordsTable(
-                    subadminId: subadminId,
-                    name: employeeFullName,
+              onTap:
+                  () => _navigateToScreen(
+                    LeaveRecordsTable(
+                      subadminId: subadminId,
+                      name: employeeFullName,
+                    ),
                   ),
-                ),
-              ),
             ),
             _buildJobsExpansionTile(),
             const Divider(height: 32, thickness: 1, color: Colors.grey),
@@ -306,6 +296,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  void _navigateToScreen(Widget screen) {
+    Navigator.push(context, _createSlidePageRoute(screen));
   }
 
   Widget _buildUserHeader(bool hasValidNetworkImage, bool hasLocalImage) {
@@ -340,10 +334,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         accountEmail: Text(
           email,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.white.withOpacity(0.9),
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.9)),
         ),
         currentAccountPicture: Hero(
           tag: 'profile_avatar',
@@ -362,12 +353,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: CircleAvatar(
               radius: 50,
               backgroundColor: Colors.grey.shade300,
-              backgroundImage: hasValidNetworkImage
-                  ? NetworkImage(empimg)
-                  : (hasLocalImage ? FileImage(File(profileImage)) : null),
-              child: (!hasValidNetworkImage && !hasLocalImage)
-                  ? const Icon(Icons.person_rounded, size: 50, color: Colors.white)
-                  : null,
+              backgroundImage:
+                  hasValidNetworkImage
+                      ? NetworkImage(empimg)
+                      : (hasLocalImage ? FileImage(File(profileImage)) : null),
+              child:
+                  (!hasValidNetworkImage && !hasLocalImage)
+                      ? const Icon(
+                        Icons.person_rounded,
+                        size: 50,
+                        color: Colors.white,
+                      )
+                      : null,
             ),
           ),
         ),
@@ -392,9 +389,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           splashColor: color.withOpacity(0.2),
           highlightColor: color.withOpacity(0.1),
           onTap: () {
-            // Add haptic feedback
             HapticFeedback.lightImpact();
-            onTap();
+            // Close drawer first, then navigate
+            Navigator.pop(context);
+            Future.delayed(Duration(milliseconds: 100), () {
+              onTap();
+            });
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
@@ -411,11 +411,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 22,
-                  ),
+                  child: Icon(icon, color: color, size: 22),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -424,7 +420,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: isDestructive ? Colors.red.shade700 : Colors.grey.shade800,
+                      color:
+                          isDestructive
+                              ? Colors.red.shade700
+                              : Colors.grey.shade800,
                     ),
                   ),
                 ),
@@ -447,7 +446,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: _isJobsExpanded ? Colors.purple.withOpacity(0.05) : Colors.transparent,
+        color:
+            _isJobsExpanded
+                ? Colors.purple.withOpacity(0.05)
+                : Colors.transparent,
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -475,10 +477,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           trailing: AnimatedRotation(
             turns: _isJobsExpanded ? 0.5 : 0,
             duration: const Duration(milliseconds: 200),
-            child: Icon(
-              Icons.expand_more_rounded,
-              color: Colors.grey.shade400,
-            ),
+            child: Icon(Icons.expand_more_rounded, color: Colors.grey.shade400),
           ),
           initiallyExpanded: _isJobsExpanded,
           onExpansionChanged: (bool expanded) {
@@ -492,19 +491,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
               'Job Openings',
               Icons.work_rounded,
               Colors.purple.shade300,
-                  () => Navigator.push(
-                context,
-                _createSlidePageRoute(JobOpeningGridScreen()),
-              ),
+              () {
+                Navigator.pop(context); // Close drawer
+                Future.delayed(Duration(milliseconds: 100), () {
+                  _navigateToScreen(JobOpeningGridScreen());
+                });
+              },
             ),
             _buildSubTile(
               'Upload Resume',
               Icons.upload_file_rounded,
               Colors.purple.shade400,
-                  () => Navigator.push(
-                context,
-                _createSlidePageRoute(UploadResumeScreen()),
-              ),
+              () {
+                Navigator.pop(context); // Close drawer
+                Future.delayed(Duration(milliseconds: 100), () {
+                  _navigateToScreen(UploadResumeScreen());
+                });
+              },
             ),
           ],
         ),
@@ -512,7 +515,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSubTile(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildSubTile(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -559,21 +567,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const end = Offset.zero;
         const curve = Curves.easeInOutCubic;
 
-        final tween = Tween(begin: begin, end: end).chain(
-          CurveTween(curve: curve),
-        );
+        final tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: curve));
 
         final offsetAnimation = animation.drive(tween);
-        final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-        );
+        final fadeAnimation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut));
 
         return SlideTransition(
           position: offsetAnimation,
-          child: FadeTransition(
-            opacity: fadeAnimation,
-            child: child,
-          ),
+          child: FadeTransition(opacity: fadeAnimation, child: child),
         );
       },
     );
@@ -585,48 +592,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final shouldLogout = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.logout_rounded, color: Colors.red.shade600),
-            const SizedBox(width: 8),
-            const Text("Logout", style: TextStyle(fontWeight: FontWeight.w600)),
-          ],
-        ),
-        content: const Text(
-          "Are you sure you want to logout?",
-          style: TextStyle(fontSize: 16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Text(
-              "Cancel",
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
+            title: Row(
+              children: [
+                Icon(Icons.logout_rounded, color: Colors.red.shade600),
+                const SizedBox(width: 8),
+                const Text(
+                  "Logout",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            content: const Text(
+              "Are you sure you want to logout?",
+              style: TextStyle(fontSize: 16),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  "Logout",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text(
-              "Logout",
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
     );
 
     if (shouldLogout ?? false) {
@@ -657,7 +678,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           },
         ),
-            (route) => false,
+        (route) => false,
       );
     }
   }

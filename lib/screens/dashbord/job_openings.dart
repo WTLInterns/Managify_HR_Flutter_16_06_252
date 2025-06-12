@@ -103,115 +103,155 @@ class _JobOpeningGridScreenState extends State<JobOpeningGridScreen> {
           ),
           _buildJobField("Experience", job.exprience ?? "-", Icons.school),
           const Spacer(),
-          ElevatedButton.icon(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder:
-                    (_) => Dialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.deepPurple.shade100, Colors.white],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder:
+                      (_) => Dialog(
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        padding: const EdgeInsets.all(20),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (_companyLogo != null)
-                                Center(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(
-                                      _companyLogo!,
-                                      height: 40,
-                                      width: 40,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              const Icon(Icons.broken_image),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.deepPurple.shade100,
+                                Colors.white,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          padding: const EdgeInsets.all(20),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (_companyLogo != null)
+                                  Center(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        _companyLogo!,
+                                        height: 40,
+                                        width: 40,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(Icons.broken_image),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              const SizedBox(height: 8),
-                              Text(
-                                job.role ?? "Job Details",
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              _buildDialogRow(
-                                "Company",
-                                job.subadmin?.registercompanyname ?? "-",
-                              ),
-                              _buildDialogRow('Role', job.role ?? "-"),
-                              _buildDialogRow(
-                                "Experience",
-                                job.exprience ?? "-",
-                              ),
-                              _buildDialogRow("Location", job.location ?? "-"),
-                              _buildDialogRow("Work Type", job.workType ?? "-"),
-                              _buildDialogRow(
-                                "Positions",
-                                job.positions?.toStringAsFixed(0) ?? "-",
-                              ),
-                              _buildDialogRow("Site Mode", job.siteMode ?? "-"),
-                              _buildDialogRow(
-                                "Description",
-                                job.description ?? "-",
-                              ),
-                              const SizedBox(height: 20),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  UiHelper.customButton(
-                                    callback: () => Navigator.of(context).pop(),
-                                    buttonName: "Cancel",
+                                const SizedBox(height: 8),
+                                Text(
+                                  job.role ?? "Job Details",
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.deepPurple,
                                   ),
-                                  const SizedBox(width: 8),
-                                  UiHelper.customButton(
-                                    callback:
-                                        () => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder:
-                                                (context) =>
-                                                    const UploadResumeScreen(),
+                                ),
+                                const SizedBox(height: 12),
+                                _buildDialogRow(
+                                  "Company",
+                                  job.subadmin?.registercompanyname ?? "-",
+                                ),
+                                _buildDialogRow("Role", job.role ?? "-"),
+                                _buildDialogRow(
+                                  "Experience",
+                                  job.exprience ?? "-",
+                                ),
+                                _buildDialogRow(
+                                  "Location",
+                                  job.location ?? "-",
+                                ),
+                                _buildDialogRow(
+                                  "Work Type",
+                                  job.workType ?? "-",
+                                ),
+                                _buildDialogRow(
+                                  "Positions",
+                                  job.positions?.toStringAsFixed(0) ?? "-",
+                                ),
+                                _buildDialogRow(
+                                  "Site Mode",
+                                  job.siteMode ?? "-",
+                                ),
+                                _buildDialogRow(
+                                  "Description",
+                                  job.description ?? "-",
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    UiHelper.customButton(
+                                      callback:
+                                          () => Navigator.of(context).pop(),
+                                      buttonName: "Cancel",
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFF667eea),
+                                          Color(0xFF764ba2),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    UiHelper.customButton(
+                                      callback:
+                                          () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) =>
+                                                      const UploadResumeScreen(),
+                                            ),
                                           ),
-                                        ),
-                                    buttonName: "Upload Resume",
-                                  ),
-                                ],
-                              ),
-                            ],
+                                      buttonName: "Upload Resume",
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFF667eea),
+                                          Color(0xFF764ba2),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-              );
-            },
-            icon: const Icon(Icons.send),
-            label: const Text("Apply Now"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                );
+              },
+              icon: const Icon(Icons.send),
+              label: const Text("Apply Now", style: TextStyle(fontSize: 13)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                minimumSize: const Size.fromHeight(36),
+                padding: const EdgeInsets.symmetric(vertical: 8),
               ),
-              minimumSize: const Size.fromHeight(36),
-              padding: const EdgeInsets.symmetric(vertical: 8),
             ),
           ),
         ],

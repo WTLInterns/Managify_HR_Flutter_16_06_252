@@ -28,7 +28,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
   String jobRole = '';
   String empimg = '';
   bool _isSubmitting = false;
-  bool _isTimeSaved = false;
   final Set<Polyline> _polylines = {};
 
   final TextEditingController _dateController = TextEditingController();
@@ -46,14 +45,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
   String workhome = 'Work From Home';
   String workField = 'Work From Field';
 
-  // New variables for managing attendance state
-  Map<String, dynamic> _savedAttendanceData = {};
-  bool _hasInitialPunchIn = false;
-  bool _hasLunchOut = false;
-  bool _hasLunchIn = false;
-  bool _hasPunchOut = false;
-  String _currentAttendanceDate = '';
-
   // Work type options
   final List<String> _workTypeOptions = [
     'Work From Office',
@@ -63,7 +54,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
   String? _selectedWorkType;
 
   static const LatLng companyLocation = LatLng(18.561092, 73.944486);
-
   static const CameraPosition _kGoogleplex = CameraPosition(
     target: companyLocation,
     zoom: 14,
@@ -83,7 +73,15 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
     _loadUserData();
     _loadSavedAttendanceData();
 
-    // Subscribe to location stream
+    // Set initial date
+    _dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    selectedDate = DateTime.now();
+
+    // Auto-fill the next required field after build completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoFillNextField();
+    });
+
     _positionSubscription = LocationService.instance.positionStream.listen((
       position,
     ) {
@@ -94,16 +92,38 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
     });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Don't auto-fill if we have saved attendance data for today
-    if (!_hasInitialPunchIn) {
-      final now = TimeOfDay.now();
-      _inTimeController.text = _formatTimeOfDay24(now);
-      _dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      selectedDate = DateTime.now();
-    }
+  String _getCurrentStage() {
+    if (_inTimeController.text.isEmpty) return 'punchIn';
+    if (_lunchOutTimeController.text.isEmpty) return 'lunchOut';
+    if (_lunchInTimeController.text.isEmpty) return 'lunchIn';
+    if (_outTimeController.text.isEmpty) return 'punchOut';
+    return 'complete';
+  }
+
+  void _autoFillNextField() {
+    final stage = _getCurrentStage();
+    final now = TimeOfDay.now();
+    final formattedTime = _formatTimeOfDay24(now);
+
+    setState(() {
+      switch (stage) {
+        case 'punchIn':
+          _inTimeController.text = formattedTime;
+          break;
+        case 'lunchOut':
+          _lunchOutTimeController.text = formattedTime;
+          break;
+        case 'lunchIn':
+          _lunchInTimeController.text = formattedTime;
+          break;
+        case 'punchOut':
+          _outTimeController.text = formattedTime;
+          break;
+        case 'complete':
+          // All fields completed
+          break;
+      }
+    });
   }
 
   String _formatTimeOfDay24(TimeOfDay time) {
@@ -153,10 +173,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
         // Check if saved data is for today
         if (savedDate == todayDate) {
           setState(() {
-            _savedAttendanceData = savedData;
-            _currentAttendanceDate = savedDate;
-
-            // Fill the form with saved data
             _dateController.text = savedData['date'] ?? '';
             _inTimeController.text = savedData['punchInTime'] ?? '';
             _lunchOutTimeController.text = savedData['lunchOutTime'] ?? '';
@@ -165,21 +181,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
             _workTypeController.text = savedData['workType'] ?? '';
             _selectedWorkType = savedData['workType'];
 
-            // Set attendance state flags
-            _hasInitialPunchIn =
-                savedData['punchInTime'] != null &&
-                savedData['punchInTime'].isNotEmpty;
-            _hasLunchOut =
-                savedData['lunchOutTime'] != null &&
-                savedData['lunchOutTime'].isNotEmpty;
-            _hasLunchIn =
-                savedData['lunchInTime'] != null &&
-                savedData['lunchInTime'].isNotEmpty;
-            _hasPunchOut =
-                savedData['punchOutTime'] != null &&
-                savedData['punchOutTime'].isNotEmpty;
-
-            // Parse the saved date
             if (savedData['date'] != null) {
               selectedDate = DateTime.parse(savedData['date']);
             }
@@ -215,58 +216,12 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
       'attendance_timestamp_$subadminId',
       DateTime.now().toIso8601String(),
     );
-
-    setState(() {
-      _savedAttendanceData = attendanceData;
-      _currentAttendanceDate = _dateController.text;
-    });
   }
 
   Future<void> _clearSavedAttendanceData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('attendance_data_$subadminId');
     await prefs.remove('attendance_timestamp_$subadminId');
-
-    setState(() {
-      _savedAttendanceData = {};
-      _currentAttendanceDate = '';
-      _hasInitialPunchIn = false;
-      _hasLunchOut = false;
-      _hasLunchIn = false;
-      _hasPunchOut = false;
-    });
-  }
-
-  bool _canEditField(String field) {
-    // If no saved data, allow editing
-    if (_savedAttendanceData.isEmpty) return true;
-
-    // Check if date matches current saved date
-    if (_dateController.text != _currentAttendanceDate) return true;
-
-    switch (field) {
-      case 'date':
-      case 'punchIn':
-        return !_hasInitialPunchIn;
-      case 'lunchOut':
-        return _hasInitialPunchIn && !_hasLunchOut;
-      case 'lunchIn':
-        return _hasLunchOut && !_hasLunchIn;
-      case 'punchOut':
-        return _hasInitialPunchIn && !_hasPunchOut;
-      case 'workType':
-        return !_hasInitialPunchIn;
-      default:
-        return true;
-    }
-  }
-
-  String _getNextEditableField() {
-    if (!_hasInitialPunchIn) return 'Initial Punch In';
-    if (!_hasLunchOut) return 'Lunch Out';
-    if (!_hasLunchIn) return 'Lunch In';
-    if (!_hasPunchOut) return 'Punch Out';
-    return 'All fields completed';
   }
 
   Future<void> _updateLocationFields(Position position) async {
@@ -324,57 +279,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
     );
   }
 
-  Future<void> _selectDate() async {
-    if (!_canEditField('date')) return;
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null) {
-      setState(() {
-        selectedDate = picked;
-        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
-      });
-    }
-  }
-
-  Future<void> _selectTime({
-    required BuildContext context,
-    required TextEditingController controller,
-    required String fieldType,
-  }) async {
-    if (!_canEditField(fieldType)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('This field cannot be edited at this time')),
-      );
-      return;
-    }
-
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-      builder: (BuildContext context, Widget? child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      final String formattedTime =
-          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-
-      setState(() {
-        controller.text = formattedTime;
-        _isTimeSaved = true;
-      });
-    }
-  }
-
   Future<void> _submitAttendance() async {
     if (_currentPosition == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -388,14 +292,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
 
     // Save attendance data to SharedPreferences first
     await _saveAttendanceData();
-
-    // Update attendance state flags based on filled fields
-    setState(() {
-      _hasInitialPunchIn = _inTimeController.text.isNotEmpty;
-      _hasLunchOut = _lunchOutTimeController.text.isNotEmpty;
-      _hasLunchIn = _lunchInTimeController.text.isNotEmpty;
-      _hasPunchOut = _outTimeController.text.isNotEmpty;
-    });
 
     final String postUrl =
         'https://api.managifyhr.com/api/employee/$subadminId/$employeeFullName/attendance/add/bulk';
@@ -476,13 +372,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
             print("PUT success: ${putResponse.body}");
           } else {
             print("PUT error: ${putResponse.body}");
-            print('Update failed: ${putResponse.statusCode}');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Please try again"),
-                backgroundColor: AppColor.red,
-              ),
-            );
           }
         }
 
@@ -493,29 +382,24 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
           ),
         );
 
-        // If _hasPunchOut and _hasInitialPunchIn fields are not completed, increase leaves
-        if (!_hasPunchOut && !_hasInitialPunchIn) {
-          leaves++;
-
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setInt('leaves', leaves); // save updated leave count
-        }
-
-        // If all fields are completed, navigate to records screen and increase count
-        if (_hasPunchOut) {
+        // Determine if we should navigate or just close
+        final stage = _getCurrentStage();
+        if (stage == 'punchOut' && _outTimeController.text.isNotEmpty) {
+          // This was the final punch out, navigate to records
           count++;
-
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setInt('count', count); // save updated count
+          await prefs.setInt('count', count);
 
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => AttendancesRecordsScreen()),
           );
+        } else {
+          // Just close the form for intermediate steps
+          Navigator.pop(context);
         }
       } else {
         print("POST error: ${postResponse.body}");
-        print('Save Failed: ${postResponse.statusCode}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Please try again"),
@@ -525,7 +409,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
       }
     } catch (e) {
       print('Exception: $e');
-      print('Error : $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Please try again"),
@@ -673,7 +556,7 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
 
   Widget _buildGoogleMap() {
     return GestureDetector(
-      onPanUpdate: (details){},
+      onPanUpdate: (details) {},
       child: GoogleMap(
         initialCameraPosition: _kGoogleplex,
         markers: Set<Marker>.of(_markers),
@@ -691,7 +574,8 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
       decoration: InputDecoration(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         hintText: 'Select Work Type',
-        enabled: _canEditField('workType'),
+        enabled:
+            _getCurrentStage() == 'punchIn', // Only enabled for first stage
       ),
       items:
           _workTypeOptions.map((String workType) {
@@ -701,7 +585,7 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
             );
           }).toList(),
       onChanged:
-          _canEditField('workType')
+          _getCurrentStage() == 'punchIn'
               ? (String? newValue) {
                 setState(() {
                   _selectedWorkType = newValue;
@@ -715,6 +599,64 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
         }
         return null;
       },
+    );
+  }
+
+  Widget _buildProgressIndicator() {
+    final stage = _getCurrentStage();
+    return Column(
+      children: [
+        LinearProgressIndicator(
+          value:
+              stage == 'punchIn'
+                  ? 0.25
+                  : stage == 'lunchOut'
+                  ? 0.5
+                  : stage == 'lunchIn'
+                  ? 0.75
+                  : 1.0,
+          backgroundColor: Colors.grey[200],
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+        ),
+        SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Punch In',
+              style: TextStyle(
+                fontWeight:
+                    stage == 'punchIn' ? FontWeight.bold : FontWeight.normal,
+                color: stage == 'punchIn' ? Colors.blue : Colors.grey,
+              ),
+            ),
+            Text(
+              'Lunch Out',
+              style: TextStyle(
+                fontWeight:
+                    stage == 'lunchOut' ? FontWeight.bold : FontWeight.normal,
+                color: stage == 'lunchOut' ? Colors.blue : Colors.grey,
+              ),
+            ),
+            Text(
+              'Lunch In',
+              style: TextStyle(
+                fontWeight:
+                    stage == 'lunchIn' ? FontWeight.bold : FontWeight.normal,
+                color: stage == 'lunchIn' ? Colors.blue : Colors.grey,
+              ),
+            ),
+            Text(
+              'Punch Out',
+              style: TextStyle(
+                fontWeight:
+                    stage == 'punchOut' ? FontWeight.bold : FontWeight.normal,
+                color: stage == 'punchOut' ? Colors.blue : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -749,32 +691,8 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status indicator
-                  if (_savedAttendanceData.isNotEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(12),
-                      margin: EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        border: Border.all(color: Colors.blue.shade200),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Attendance Status',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                          Text('Next: ${_getNextEditableField()}'),
-                        ],
-                      ),
-                    ),
-
+                  _buildProgressIndicator(),
+                  SizedBox(height: 16),
                   Row(
                     children: [
                       Container(
@@ -850,38 +768,22 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   TextFormField(
                     controller: _dateController,
                     readOnly: true,
-                    onTap: _canEditField('date') ? _selectDate : null,
                     decoration: InputDecoration(
                       hintText: 'Select Date',
-                      suffixIcon: Icon(
-                        _canEditField('date')
-                            ? Icons.calendar_today
-                            : Icons.lock_clock,
-                        color: _canEditField('date') ? null : Colors.grey,
-                      ),
+                      suffixIcon: Icon(Icons.calendar_today),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      enabled: _canEditField('date'),
                     ),
-                    validator:
-                        (value) =>
-                            value == null || value.isEmpty
-                                ? 'Please select a date'
-                                : null,
                   ),
                   SizedBox(height: 16),
                   const Text("PUNCH IN"),
                   TextFormField(
                     controller: _inTimeController,
-                    enabled: _canEditField('punchIn'),
                     readOnly: true,
                     decoration: InputDecoration(
                       hintText: 'IN Time',
-                      suffixIcon: Icon(
-                        Icons.lock_clock,
-                        color: _canEditField('punchIn') ? null : Colors.grey,
-                      ),
+                      suffixIcon: Icon(Icons.lock_clock),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -892,24 +794,12 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   TextFormField(
                     controller: _lunchOutTimeController,
                     readOnly: true,
-                    onTap:
-                        () => _selectTime(
-                          context: context,
-                          controller: _lunchOutTimeController,
-                          fieldType: 'lunchOut',
-                        ),
                     decoration: InputDecoration(
-                      hintText: 'Select Time',
-                      suffixIcon: Icon(
-                        _canEditField('lunchOut')
-                            ? Icons.access_time
-                            : Icons.lock_clock,
-                        color: _canEditField('lunchOut') ? null : Colors.grey,
-                      ),
+                      hintText: 'Lunch Out Time',
+                      suffixIcon: Icon(Icons.lock_clock),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      enabled: _canEditField('lunchOut'),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -917,24 +807,12 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   TextFormField(
                     controller: _lunchInTimeController,
                     readOnly: true,
-                    onTap:
-                        () => _selectTime(
-                          context: context,
-                          controller: _lunchInTimeController,
-                          fieldType: 'lunchIn',
-                        ),
                     decoration: InputDecoration(
-                      hintText: 'Select Time',
-                      suffixIcon: Icon(
-                        _canEditField('lunchIn')
-                            ? Icons.access_time
-                            : Icons.lock_clock,
-                        color: _canEditField('lunchIn') ? null : Colors.grey,
-                      ),
+                      hintText: 'Lunch In Time',
+                      suffixIcon: Icon(Icons.lock_clock),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      enabled: _canEditField('lunchIn'),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -942,24 +820,12 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                   TextFormField(
                     controller: _outTimeController,
                     readOnly: true,
-                    onTap:
-                        () => _selectTime(
-                          context: context,
-                          controller: _outTimeController,
-                          fieldType: 'punchOut',
-                        ),
                     decoration: InputDecoration(
-                      hintText: 'Select Time',
-                      suffixIcon: Icon(
-                        _canEditField('punchOut')
-                            ? Icons.access_time
-                            : Icons.lock_clock,
-                        color: _canEditField('punchOut') ? null : Colors.grey,
-                      ),
+                      hintText: 'OUT Time',
+                      suffixIcon: Icon(Icons.lock_clock),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      enabled: _canEditField('punchOut'),
                     ),
                   ),
                   SizedBox(height: 16),
