@@ -1,17 +1,35 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hrm_dump_flutter/screens/login/login.dart';
 import 'package:hrm_dump_flutter/screens/profile/employee_details.dart';
+import 'package:hrm_dump_flutter/screens/profile/privacy/leave_policy.dart';
 import 'package:hrm_dump_flutter/screens/profile/privacy/privacy_policy.dart';
 import 'package:hrm_dump_flutter/screens/profile/privacy/term_&_condition.dart';
 import 'package:hrm_dump_flutter/theme/colors.dart';
 import 'package:hrm_dump_flutter/widget/custom_widgets.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+class NonStoringCacheManager extends CacheManager {
+  static const key = 'nonStoringCache';
+  static final NonStoringCacheManager _instance = NonStoringCacheManager._();
+  factory NonStoringCacheManager() => _instance;
+
+  NonStoringCacheManager._()
+      : super(Config(
+    key,
+    fileService: HttpFileService(),
+  ));
+}
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,20 +38,18 @@ class ProfileScreen extends StatefulWidget {
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
-    with TickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
   int _selectedIndex = 0;
   bool _darkModeEnabled = false;
-  bool _locationEnabled = true;
+  bool _locationEnabled = false;
 
   // User data variables
-  int count = 0;
-  int leaves = 0;
   String employeeFullName = '';
+  String companyurl = '';
   String email = '';
   int subadminId = 0;
   int phone = 0;
@@ -44,9 +60,19 @@ class _ProfileScreenState extends State<ProfileScreen>
   String registercompanyname = '';
   String address = '';
   String birthDate = '';
-  String joiningDate = '';
   String education = '';
   String gender = '';
+  String profileImage = '';
+  int totalDays = 0;
+  int absentDays = 0;
+  int presentDays = 0;
+  double attendancePercentage = 0.0;
+
+  // Current month for attendance data
+  DateTime _selectedMonth = DateTime.now();
+
+  // Base URL for images
+  final String _imageBaseUrl = 'https://api.managifyhr.com/images/profile/';
 
   // Image handling
   File? _imageFile;
@@ -55,11 +81,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this); // Add lifecycle observer
     _loadUserData();
-    _loadProfileImage();
-    resetMonthlyStatsIfNeeded().then((_) {
-      setState(() {}); // Refresh UI after loading/resetting
-    });
+    _checkLocationServiceStatus(); // Check initial location service status
 
     _animationController = AnimationController(
       duration: Duration(milliseconds: 800),
@@ -82,328 +106,362 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // Remove lifecycle observer
     _animationController.dispose();
     super.dispose();
   }
 
+  // Detect when app resumes to re-check location status
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkLocationServiceStatus(); // Re-check status when app resumes
+    }
+  }
+
+  // Check if location services are enabled and update the switch state
+  Future<void> _checkLocationServiceStatus() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (serviceEnabled) {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      serviceEnabled = permission != LocationPermission.denied &&
+          permission != LocationPermission.deniedForever;
+    }
+    if (mounted) {
+      setState(() {
+        _locationEnabled = serviceEnabled;
+      });
+    }
+  }
+
+  // Handle switch toggle
+  Future<void> _handleLocationToggle(bool value) async {
+    if (value) {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        await Geolocator.openLocationSettings();
+        return; // Status will be checked when app resumes
+      }
+      LocationPermission permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Location permission denied.')),
+          );
+          setState(() {
+            _locationEnabled = false;
+          });
+        }
+        return;
+      }
+    } else {
+      await Geolocator.openLocationSettings();
+      return; // Status will be checked when app resumes
+    }
+    if (mounted) {
+      setState(() {
+        _locationEnabled = value;
+      });
+    }
+  }
+
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
+    String monthKey = DateFormat('yyyy_MM').format(_selectedMonth);
     setState(() {
       employeeFullName = prefs.getString('fullName') ?? '';
       email = prefs.getString('email') ?? '';
       subadminId = prefs.getInt('subadminId') ?? 0;
-      count = prefs.getInt('count') ?? 0;
-      leaves = prefs.getInt('leaves') ?? 0;
       phone = prefs.getInt('phone') ?? 0;
       empId = prefs.getInt('empId') ?? 0;
       jobRole = prefs.getString('jobRole') ?? '';
       empimg = prefs.getString('empimg') ?? '';
       birthDate = prefs.getString('birthDate') ?? '';
+      companyurl = prefs.getString('companyurl') ?? '';
       address = prefs.getString('address') ?? '';
       gender = prefs.getString('gender') ?? '';
-      birthDate = prefs.getString('birthDate') ?? '';
+      profileImage = prefs.getString('profileImage') ?? '';
+      presentDays = prefs.getInt('presentDays_$monthKey') ?? 0;
+      absentDays = prefs.getInt('absentDays_$monthKey') ?? 0;
+      totalDays = prefs.getInt('totalDays_$monthKey') ?? 0;
+      attendancePercentage =
+          prefs.getDouble('attendancePercentage_$monthKey') ?? 0.0;
     });
   }
 
-  Future<void> _loadProfileImage() async {
-    final imagePath = await _getImageFromSharedPreferences();
-    if (imagePath != null && imagePath.isNotEmpty) {
-      if (imagePath.startsWith('http')) {
-        setState(() {
-          empimg = imagePath;
-        });
-      } else {
-        setState(() {
-          _imageFile = File(imagePath);
-        });
-      }
+  bool _isValidUrl(String url) {
+    if (url.isEmpty) return false;
+    final uri = Uri.tryParse(url);
+    return uri != null && (uri.isScheme('http') || uri.isScheme('https'));
+  }
+
+  String _getImageUrl(String imagePath) {
+    if (imagePath.isEmpty) return '';
+    if (_isValidUrl(imagePath)) return imagePath;
+    return '$_imageBaseUrl$imagePath';
+  }
+
+  Future<CacheManager> _getCacheManager() async {
+    if (kIsWeb) {
+      return NonStoringCacheManager();
     }
+    return DefaultCacheManager();
   }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
       final pickedFile = await _picker.pickImage(source: source);
       if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-        });
-        await _saveImageToSharedPreferences(pickedFile.path);
+        if (!kIsWeb) {
+          final appDir = await getApplicationDocumentsDirectory();
+          final fileName = path.basename(pickedFile.path);
+          final savedImage = await File(pickedFile.path).copy(
+              '${appDir.path}/$fileName');
+
+          // Verify file existence
+          if (await savedImage.exists()) {
+            setState(() {
+              _imageFile = savedImage;
+              profileImage = savedImage.path;
+              empimg = ''; // Clear network image to prioritize local image
+            });
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('profileImage', savedImage.path);
+            await prefs.setString('empimg', '');
+          } else {
+            throw Exception('Failed to save image to ${savedImage.path}');
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Image picking is not supported on web')),
+          );
+        }
       }
     } catch (e) {
+      print('Error picking image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
       );
     }
   }
 
-  Future<void> _saveImageToSharedPreferences(String imagePath) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      if (imagePath.startsWith('http')) {
-        await prefs.setString('profileImage', imagePath);
-        return;
-      }
-
-      final appDir = await getApplicationDocumentsDirectory();
-      final fileName = path.basename(imagePath);
-      final savedImage = await File(imagePath).copy('${appDir.path}/$fileName');
-
-      await prefs.setString('profileImage', savedImage.path);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save image: ${e.toString()}')),
-      );
-    }
-  }
-
-  Future<String?> _getImageFromSharedPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('profileImage');
+  Future<bool> _hasValidLocalImage() async {
+    if (profileImage.isEmpty || kIsWeb) return false;
+    return await File(profileImage).exists();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF8F9FA),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: CustomScrollView(
-            slivers: [
-              _buildSliverAppBar(),
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    _buildProfileStats(),
-                    SizedBox(height: 20),
-                    _buildTabBar(),
-                    SizedBox(height: 20),
-                    _buildTabContent(),
-                    _buildLogoutCard(),
-                    SizedBox(height: 20),
-                  ],
-                ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              background: FutureBuilder<bool>(
+                future: _hasValidLocalImage(),
+                builder: (context, snapshot) {
+                  final hasLocalImage = snapshot.data ?? false;
+                  final hasValidNetworkImage = _isValidUrl(
+                      _getImageUrl(empimg));
+                  return FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: _buildSliverAppBar(
+                          hasValidNetworkImage && !hasLocalImage,
+                          hasLocalImage),
+                    ),
+                  );
+                },
               ),
-            ],
+            ),
           ),
-        ),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _buildProfileStats(),
+                SizedBox(height: 20),
+                _buildTabBar(),
+                SizedBox(height: 20),
+                _buildTabContent(),
+                _buildLogoutCard(),
+                SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      expandedHeight: 320,
-      floating: false,
-
-
-      pinned: true,
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF667eea), Color(0xFF764ba2), Color(0xFFf093fb)],
-            ),
+  Widget _buildSliverAppBar(bool hasValidNetworkImage, bool hasLocalImage) {
+    return Container(
+      height: 320,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF667eea), Color(0xFF764ba2), Color(0xFFf093fb)],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: CustomPaint(painter: BackgroundPatternPainter()),
           ),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: CustomPaint(painter: BackgroundPatternPainter()),
-              ),
-              Positioned.fill(
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.white.withOpacity(0.3),
-                              blurRadius: 20,
-                              spreadRadius: 5,
-                            ),
-                          ],
+          Positioned.fill(
+            child: SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.3),
+                          blurRadius: 20,
+                          spreadRadius: 5,
                         ),
-                        child: Stack(
-                          children: [
-                            CircleAvatar(
-                              radius: 60,
-                              backgroundColor: Colors.white,
-                              child: CircleAvatar(
-                                radius: 55,
-                                backgroundImage:
-                                    _imageFile != null
-                                        ? FileImage(_imageFile!)
-                                            as ImageProvider
-                                        : (empimg.isNotEmpty
-                                            ? NetworkImage(empimg)
-                                            : AssetImage(
-                                                  'assets/default_profile.png',
-                                                )
-                                                as ImageProvider),
+                      ],
+                    ),
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: 55,
+                            backgroundImage: hasLocalImage
+                                ? FileImage(File(profileImage))
+                                : (hasValidNetworkImage
+                                ? CachedNetworkImageProvider(
+                                _getImageUrl(empimg))
+                                : null),
+                            child: !hasLocalImage && !hasValidNetworkImage
+                                ? Icon(
+                                Icons.person, size: 55, color: Colors.grey)
+                                : null,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () async {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (_) =>
+                                    SafeArea(
+                                      child: Wrap(
+                                        children: [
+                                          ListTile(
+                                            leading: Icon(Icons.photo_library),
+                                            title: Text('Choose from Gallery'),
+                                            onTap: () {
+                                              Navigator.of(context).pop();
+                                              _pickImage(ImageSource.gallery);
+                                            },
+                                          ),
+                                          ListTile(
+                                            leading: Icon(Icons.camera_alt),
+                                            title: Text('Take a Photo'),
+                                            onTap: () {
+                                              Navigator.of(context).pop();
+                                              _pickImage(ImageSource.camera);
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Color(0xFF00D4AA),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: Colors.white, width: 2),
+                              ),
+                              padding: EdgeInsets.all(6),
+                              child: Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 22,
                               ),
                             ),
-                            Positioned(
-                              bottom: 4,
-                              right: 4,
-                              child: GestureDetector(
-                                onTap: () async {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    builder:
-                                        (_) => SafeArea(
-                                          child: Wrap(
-                                            children: [
-                                              ListTile(
-                                                leading: Icon(
-                                                  Icons.photo_library,
-                                                ),
-                                                title: Text(
-                                                  'Choose from Gallery',
-                                                ),
-                                                onTap: () {
-                                                  Navigator.of(context).pop();
-                                                  _pickImage(
-                                                    ImageSource.gallery,
-                                                  );
-                                                },
-                                              ),
-                                              ListTile(
-                                                leading: Icon(Icons.camera_alt),
-                                                title: Text('Take a Photo'),
-                                                onTap: () {
-                                                  Navigator.of(context).pop();
-                                                  _pickImage(
-                                                    ImageSource.camera,
-                                                  );
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                  );
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFF00D4AA),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TweenAnimationBuilder(
+                    duration: Duration(milliseconds: 1000),
+                    tween: Tween<double>(begin: 0, end: 1),
+                    builder: (context, double value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, 20 * (1 - value)),
+                          child: Column(
+                            children: [
+                              Text(
+                                employeeFullName,
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  shadows: [
+                                    Shadow(
+                                      blurRadius: 10,
+                                      color: Colors.black26,
                                     ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
                                   ),
-                                  padding: EdgeInsets.all(6),
-                                  child: Icon(
-                                    Icons.camera_alt,
-                                    color: Colors.white,
-                                    size: 22,
+                                ),
+                                child: Text(
+                                  jobRole,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      TweenAnimationBuilder(
-                        duration: Duration(milliseconds: 1000),
-                        tween: Tween<double>(begin: 0, end: 1),
-                        builder: (context, double value, child) {
-                          return Opacity(
-                            opacity: value,
-                            child: Transform.translate(
-                              offset: Offset(0, 20 * (1 - value)),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    employeeFullName,
-                                    style: TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 10,
-                                          color: Colors.black26,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.3),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      jobRole,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white.withOpacity(0.9),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
-  }
-
-  Future<void> resetMonthlyStatsIfNeeded() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    // Get the stored month, or null if not stored yet
-    final storedMonth = prefs.getInt('month') ?? -1;
-
-    // Get current month (1 to 12)
-    final currentMonth = DateTime.now().month;
-
-    if (storedMonth != currentMonth) {
-      // New month started - reset the attendance and leaves counts
-      await prefs.setInt('count', 0);
-      await prefs.setInt('leaves', 0);
-
-      // Update the stored month to current month
-      await prefs.setInt('month', currentMonth);
-
-      // Also update your in-memory variables if you have them
-      count = 0;
-      leaves = 0;
-    } else {
-      // Same month - load existing values
-      count = prefs.getInt('count') ?? 0;
-      leaves = prefs.getInt('leaves') ?? 0;
-    }
-
-    // Similarly load empId if needed
-    // empId = prefs.getInt('empId') ?? 0;
   }
 
   Widget _buildProfileStats() {
@@ -411,10 +469,14 @@ class _ProfileScreenState extends State<ProfileScreen>
       {'label': 'EmpId', 'value': empId.toString(), 'icon': Icons.badge},
       {
         'label': 'Attendance',
-        'value': count.toString(),
-        'icon': Icons.event_available,
+        'value': presentDays.toString(),
+        'icon': Icons.event_available
       },
-      {'label': 'Leaves', 'value': leaves.toString(), 'icon': Icons.event_busy},
+      {
+        'label': 'Leaves',
+        'value': absentDays.toString(),
+        'icon': Icons.event_busy
+      },
     ];
 
     return Container(
@@ -433,66 +495,65 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children:
-            stats.map((stat) {
-              Color valueColor;
-              if (stat['label'] == 'Attendance') {
-                valueColor = AppColor.green;
-              } else if (stat['label'] == 'Leaves') {
-                valueColor = AppColor.red;
-              } else {
-                valueColor = Color(0xFF2D3748);
-              }
+        children: stats.map((stat) {
+          Color valueColor;
+          if (stat['label'] == 'Attendance') {
+            valueColor = AppColor.green;
+          } else if (stat['label'] == 'Leaves') {
+            valueColor = AppColor.red;
+          } else {
+            valueColor = Color(0xFF2D3748);
+          }
 
-              return TweenAnimationBuilder(
-                duration: Duration(milliseconds: 800),
-                tween: Tween<double>(begin: 0, end: 1),
-                builder: (context, double value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Color(0xFF667eea).withOpacity(0.1),
-                                Color(0xFFf093fb).withOpacity(0.1),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            stat['icon'] as IconData,
-                            color: Color(0xFF667eea),
-                            size: 24,
-                          ),
+          return TweenAnimationBuilder(
+            duration: Duration(milliseconds: 800),
+            tween: Tween<double>(begin: 0, end: 1),
+            builder: (context, double value, child) {
+              return Transform.scale(
+                scale: value,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFF667eea).withOpacity(0.1),
+                            Color(0xFFf093fb).withOpacity(0.1),
+                          ],
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          stat['value'] as String,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: valueColor,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          stat['label'] as String,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: valueColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        stat['icon'] as IconData,
+                        color: Color(0xFF667eea),
+                        size: 23,
+                      ),
                     ),
-                  );
-                },
+                    SizedBox(height: 8),
+                    Text(
+                      stat['value'] as String,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: valueColor,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      stat['label'] as String,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: valueColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               );
-            }).toList(),
+            },
+          );
+        }).toList(),
       ),
     );
   }
@@ -525,20 +586,18 @@ class _ProfileScreenState extends State<ProfileScreen>
               margin: EdgeInsets.only(right: 12),
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                gradient:
-                    isSelected
-                        ? LinearGradient(
-                          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                        )
-                        : null,
+                gradient: isSelected
+                    ? LinearGradient(
+                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                )
+                    : null,
                 color: isSelected ? null : Colors.white,
                 borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        isSelected
-                            ? Color(0xFF667eea).withOpacity(0.3)
-                            : Colors.black.withOpacity(0.05),
+                    color: isSelected
+                        ? Color(0xFF667eea).withOpacity(0.3)
+                        : Colors.black.withOpacity(0.05),
                     blurRadius: isSelected ? 15 : 10,
                     offset: Offset(0, isSelected ? 8 : 5),
                   ),
@@ -597,18 +656,17 @@ class _ProfileScreenState extends State<ProfileScreen>
             _buildInfoRow(Icons.cake, 'Birthday', birthDate),
             Center(
               child: UiHelper.customButton(
-                buttonName: 'Edit',
-                width: 160,
+                buttonName: 'Details',
+                width: 320,
                 height: 50,
                 gradient: LinearGradient(
                   colors: [Color(0xFF667eea), Color(0xFF764ba2)],
                 ),
-                callback:
-                    () => Navigator.push(
+                callback: () =>
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EmployeeDetailsScreen(),
-                      ),
+                          builder: (context) => EmployeeDetailsScreen()),
                     ),
               ),
             ),
@@ -630,14 +688,14 @@ class _ProfileScreenState extends State<ProfileScreen>
               'Dark Mode',
               'Enable dark theme',
               _darkModeEnabled,
-              (value) => setState(() => _darkModeEnabled = value),
+                  (value) => setState(() => _darkModeEnabled = value),
             ),
             _buildSwitchRow(
               Icons.location_on,
               'Location Services',
               'Allow location access',
               _locationEnabled,
-              (value) => setState(() => _locationEnabled = value),
+              _handleLocationToggle,
             ),
             _buildActionRow(
               Icons.star_rate,
@@ -648,8 +706,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               Icons.phone_iphone,
               'Follow Us On Social Media',
               'Join our community',
-              urlToLaunch:
-                  'https://www.instagram.com/webutsav?igsh=dHRtb24wYjNsY2ly',
+              urlToLaunch: 'https://www.instagram.com/webutsav?igsh=dHRtb24wYjNsY2ly',
             ),
           ]),
           SizedBox(height: 20),
@@ -739,8 +796,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     final shouldLogout = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
+      builder: (context) =>
+          AlertDialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -774,9 +831,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 onPressed: () => Navigator.pop(context, false),
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
+                      horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -796,9 +851,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   backgroundColor: Colors.red.shade600,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
+                      horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -822,12 +875,12 @@ class _ProfileScreenState extends State<ProfileScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-            ),
-          ),
+      builder: (context) =>
+      const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+        ),
+      ),
     );
 
     try {
@@ -844,8 +897,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         context,
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 1000),
-          pageBuilder:
-              (context, animation, secondaryAnimation) => const LoginScreen(),
+          pageBuilder: (context, animation,
+              secondaryAnimation) => const LoginScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(0.0, -1.0);
             const end = Offset.zero;
@@ -854,8 +907,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             final slideTween = Tween(begin: begin, end: end);
             final curveTween = CurveTween(curve: curve);
             final slideAnimation = animation.drive(
-              slideTween.chain(curveTween),
-            );
+                slideTween.chain(curveTween));
 
             final fadeTween = Tween<double>(begin: 0.0, end: 1.0);
             final fadeAnimation = animation.drive(fadeTween.chain(curveTween));
@@ -866,7 +918,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             );
           },
         ),
-        (route) => false,
+            (route) => false,
       );
     } catch (e) {
       if (context.mounted) {
@@ -900,16 +952,16 @@ class _ProfileScreenState extends State<ProfileScreen>
               destinationScreen: PrivacyPolicyScreen(),
             ),
             _buildActionRow(
-              Icons.fact_check,
-              'Leave Policy	',
-              "Company Leave Guidelines",
+                Icons.fact_check,
+                'Leave Policy',
+                "Company Leave Guidelines",
+                destinationScreen: LeavePolicyScreen()
             ),
             _buildActionRow(
               Icons.language,
               'Visit Our Website',
               'View your activity',
-              urlToLaunch:
-              'https://webutsav.com',
+              urlToLaunch: companyurl,
             ),
           ]),
         ],
@@ -1054,20 +1106,18 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildActionRow(
-      IconData icon,
+  Widget _buildActionRow(IconData icon,
       String title,
       String subtitle, {
         bool isDestructive = false,
         String? urlToLaunch,
-        Widget? destinationScreen, // <-- Add this
+        Widget? destinationScreen,
       }) {
     return InkWell(
       onTap: () async {
         HapticFeedback.lightImpact();
 
         if (destinationScreen != null) {
-          // Navigate to new screen
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => destinationScreen),
@@ -1125,14 +1175,12 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-
-  Widget _buildSwitchRow(
-    IconData icon,
-    String title,
-    String subtitle,
-    bool value,
-    Function(bool) onChanged,
-  ) {
+  // Your original _buildSwitchRow widget
+  Widget _buildSwitchRow(IconData icon,
+      String title,
+      String subtitle,
+      bool value,
+      Function(bool) onChanged,) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
@@ -1180,10 +1228,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 class BackgroundPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = Colors.white.withOpacity(0.1)
-          ..strokeWidth = 1;
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..strokeWidth = 1;
 
     for (int i = 0; i < 20; i++) {
       for (int j = 0; j < 20; j++) {

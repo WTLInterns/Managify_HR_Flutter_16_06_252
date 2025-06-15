@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hrm_dump_flutter/screens/dailyGoals/daily_goals.dart';
 import 'package:hrm_dump_flutter/screens/dashbord/job_openings.dart';
 import 'package:hrm_dump_flutter/screens/dashbord/leave_records.dart';
@@ -12,6 +15,19 @@ import 'package:hrm_dump_flutter/screens/login/login.dart';
 import 'package:hrm_dump_flutter/screens/profile/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Custom cache manager for web
+class NonStoringCacheManager extends CacheManager {
+  static const key = 'nonStoringCache';
+  static final NonStoringCacheManager _instance = NonStoringCacheManager._();
+  factory NonStoringCacheManager() => _instance;
+
+  NonStoringCacheManager._()
+      : super(Config(
+    key,
+    fileService: HttpFileService(),
+  ));
+}
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -19,7 +35,7 @@ class DashboardScreen extends StatefulWidget {
   _DashboardScreenState createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
   String employeeFullName = '';
   String profileImage = '';
   String email = '';
@@ -31,10 +47,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isJobsExpanded = false;
   int _selectedIndex = 0;
 
+  // Base URL for images
+  final String _imageBaseUrl = 'https://api.managifyhr.com/images/profile/';
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadUserData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadUserData(); // Reload user data when the app resumes
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -52,10 +85,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   bool _isValidUrl(String url) {
+    if (url.isEmpty) return false;
     final uri = Uri.tryParse(url);
-    return uri != null &&
-        uri.hasAbsolutePath &&
-        (uri.isScheme('http') || uri.isScheme('https'));
+    return uri != null && (uri.isScheme('http') || uri.isScheme('https'));
+  }
+
+  String _getImageUrl(String imagePath) {
+    if (imagePath.isEmpty) return '';
+    if (_isValidUrl(imagePath)) return imagePath;
+    return '$_imageBaseUrl$imagePath';
+  }
+
+  Future<CacheManager> _getCacheManager() async {
+    if (kIsWeb) {
+      return NonStoringCacheManager();
+    }
+    return DefaultCacheManager();
   }
 
   void _onItemTapped(int index) {
@@ -65,19 +110,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     switch (index) {
       case 0:
-        // Home - Stay on Dashboard
         break;
       case 1:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => DailyGoalsScreen()),
-        );
+        ).then((_) => _loadUserData()); // Reload data after returning
         break;
       case 2:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => ProfileScreen()),
-        );
+        ).then((_) => _loadUserData()); // Reload data after returning
         break;
     }
   }
@@ -86,34 +130,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     bool isSelected = _selectedIndex == index;
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-        _onItemTapped(index);
-      },
+      onTap: () => _onItemTapped(index),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(isSelected ? 8 : 6), // Reduced padding
+            padding: EdgeInsets.all(isSelected ? 8 : 6),
             decoration: BoxDecoration(
-              color:
-                  isSelected
-                      ? Colors.white.withOpacity(0.25)
-                      : Colors.transparent,
+              color: isSelected ? Colors.white.withOpacity(0.25) : Colors.transparent,
               borderRadius: BorderRadius.circular(20),
-              boxShadow:
-                  isSelected
-                      ? [
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.2),
-                          blurRadius: 8.0, // Reduced blur
-                          offset: Offset(0, 2), // Reduced offset
-                          spreadRadius: 0,
-                        ),
-                      ]
-                      : null,
+              boxShadow: isSelected
+                  ? [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.2),
+                  blurRadius: 8.0,
+                  offset: Offset(0, 2),
+                  spreadRadius: 0,
+                ),
+              ]
+                  : null,
             ),
             child: AnimatedScale(
               duration: Duration(milliseconds: 300),
@@ -121,9 +156,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               scale: isSelected ? 1.1 : 1.0,
               child: Icon(
                 icon,
-                color:
-                    isSelected ? Colors.white : Colors.white.withOpacity(0.7),
-                size: isSelected ? 24 : 22, // Reduced icon size
+                color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+                size: isSelected ? 24 : 22,
               ),
             ),
           ),
@@ -131,7 +165,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             duration: Duration(milliseconds: 300),
             style: TextStyle(
               color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
-              fontSize: isSelected ? 11 : 10, // Reduced font size
+              fontSize: isSelected ? 11 : 10,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
             child: Text(label),
@@ -149,7 +183,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
         centerTitle: true,
-        // Instead of left padding, use this for centering
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -161,7 +194,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         elevation: 4,
       ),
-
       body: _buildDashboardContent(),
       bottomNavigationBar: Container(
         height: 63,
@@ -189,22 +221,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             topLeft: Radius.circular(35),
             topRight: Radius.circular(35),
           ),
-          child: Stack(
-            children: [
-              // Navigation items
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                // Reduced vertical padding
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNavItem(0, Icons.home_filled, 'Home'),
-                    _buildNavItem(1, Icons.track_changes, 'Goals'),
-                    _buildNavItem(2, Icons.person, 'Profile'),
-                  ],
-                ),
-              ),
-            ],
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, Icons.home_filled, 'Home'),
+                _buildNavItem(1, Icons.track_changes, 'Goals'),
+                _buildNavItem(2, Icons.person, 'Profile'),
+              ],
+            ),
           ),
         ),
       ),
@@ -212,9 +238,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildDrawer() {
-    final bool hasValidNetworkImage = _isValidUrl(empimg);
-    final bool hasLocalImage =
-        profileImage.isNotEmpty && File(profileImage).existsSync();
+    final bool hasValidNetworkImage = _isValidUrl(_getImageUrl(empimg));
+    final bool hasLocalImage = profileImage.isNotEmpty && !kIsWeb && File(profileImage).existsSync();
 
     final mediaQuery = MediaQuery.of(context);
     final appBarHeight = AppBar().preferredSize.height;
@@ -223,11 +248,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final bottomSafeArea = mediaQuery.padding.bottom;
 
     final availableHeight =
-        mediaQuery.size.height -
-        appBarHeight -
-        statusBarHeight -
-        bottomNavHeight -
-        bottomSafeArea;
+        mediaQuery.size.height - appBarHeight - statusBarHeight - bottomNavHeight - bottomSafeArea;
 
     return Drawer(
       child: Container(
@@ -248,9 +269,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               icon: Icons.home_rounded,
               title: 'Home',
               color: Colors.indigo,
-              onTap: () {
-                // Just close drawer for home
-              },
+              onTap: () => Navigator.pop(context),
             ),
             _buildAnimatedTile(
               icon: Icons.event_available_rounded,
@@ -274,13 +293,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               icon: Icons.assignment_turned_in_rounded,
               title: 'Leave Records',
               color: Colors.amber,
-              onTap:
-                  () => _navigateToScreen(
-                    LeaveRecordsTable(
-                      subadminId: subadminId,
-                      name: employeeFullName,
-                    ),
-                  ),
+              onTap: () => _navigateToScreen(
+                LeaveRecordsTable(
+                  subadminId: subadminId,
+                  name: employeeFullName,
+                ),
+              ),
             ),
             _buildJobsExpansionTile(),
             const Divider(height: 32, thickness: 1, color: Colors.grey),
@@ -299,7 +317,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _navigateToScreen(Widget screen) {
-    Navigator.push(context, _createSlidePageRoute(screen));
+    Navigator.pop(context);
+    Navigator.push(context, _createSlidePageRoute(screen)).then((_) => _loadUserData());
   }
 
   Widget _buildUserHeader(bool hasValidNetworkImage, bool hasLocalImage) {
@@ -353,18 +372,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: CircleAvatar(
               radius: 50,
               backgroundColor: Colors.grey.shade300,
-              backgroundImage:
-                  hasValidNetworkImage
-                      ? NetworkImage(empimg)
-                      : (hasLocalImage ? FileImage(File(profileImage)) : null),
-              child:
-                  (!hasValidNetworkImage && !hasLocalImage)
-                      ? const Icon(
+              child: hasValidNetworkImage && !hasLocalImage
+                  ? FutureBuilder<CacheManager>(
+                future: _getCacheManager(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return CachedNetworkImage(
+                      imageUrl: _getImageUrl(empimg),
+                      cacheManager: snapshot.data,
+                      imageBuilder: (context, imageProvider) => Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      placeholder: (context, url) => const CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => const Icon(
                         Icons.person_rounded,
                         size: 50,
                         color: Colors.white,
-                      )
-                      : null,
+                      ),
+                    );
+                  }
+                  return const CircularProgressIndicator();
+                },
+              )
+                  : (hasLocalImage
+                  ? ClipOval(
+                child: Image.file(
+                  File(profileImage),
+                  fit: BoxFit.cover,
+                  width: 100,
+                  height: 100,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.person_rounded,
+                    size: 50,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+                  : const Icon(
+                Icons.person_rounded,
+                size: 50,
+                color: Colors.white,
+              )),
             ),
           ),
         ),
@@ -390,14 +444,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           highlightColor: color.withOpacity(0.1),
           onTap: () {
             HapticFeedback.lightImpact();
-            // Close drawer first, then navigate
-            Navigator.pop(context);
-            Future.delayed(Duration(milliseconds: 100), () {
-              onTap();
-            });
+            onTap();
           },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
+          child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
@@ -420,10 +469,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color:
-                          isDestructive
-                              ? Colors.red.shade700
-                              : Colors.grey.shade800,
+                      color: isDestructive ? Colors.red.shade700 : Colors.grey.shade800,
                     ),
                   ),
                 ),
@@ -446,10 +492,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color:
-            _isJobsExpanded
-                ? Colors.purple.withOpacity(0.05)
-                : Colors.transparent,
+        color: _isJobsExpanded ? Colors.purple.withOpacity(0.05) : Colors.transparent,
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -491,23 +534,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               'Job Openings',
               Icons.work_rounded,
               Colors.purple.shade300,
-              () {
-                Navigator.pop(context); // Close drawer
-                Future.delayed(Duration(milliseconds: 100), () {
-                  _navigateToScreen(JobOpeningGridScreen());
-                });
-              },
+                  () => _navigateToScreen(JobOpeningGridScreen()),
             ),
             _buildSubTile(
               'Upload Resume',
               Icons.upload_file_rounded,
               Colors.purple.shade400,
-              () {
-                Navigator.pop(context); // Close drawer
-                Future.delayed(Duration(milliseconds: 100), () {
-                  _navigateToScreen(UploadResumeScreen());
-                });
-              },
+                  () => _navigateToScreen(UploadResumeScreen()),
             ),
           ],
         ),
@@ -516,11 +549,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSubTile(
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
+      String title,
+      IconData icon,
+      Color color,
+      VoidCallback onTap,
+      ) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -567,16 +600,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const end = Offset.zero;
         const curve = Curves.easeInOutCubic;
 
-        final tween = Tween(
-          begin: begin,
-          end: end,
-        ).chain(CurveTween(curve: curve));
-
+        final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
         final offsetAnimation = animation.drive(tween);
-        final fadeAnimation = Tween<double>(
-          begin: 0.0,
-          end: 1.0,
-        ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut));
+        final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+            .animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut));
 
         return SlideTransition(
           position: offsetAnimation,
@@ -592,62 +619,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final shouldLogout = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Colors.red.shade600),
+            const SizedBox(width: 8),
+            const Text(
+              "Logout",
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            title: Row(
-              children: [
-                Icon(Icons.logout_rounded, color: Colors.red.shade600),
-                const SizedBox(width: 8),
-                const Text(
-                  "Logout",
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ],
+          ],
+        ),
+        content: const Text(
+          "Are you sure you want to logout?",
+          style: TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            content: const Text(
-              "Are you sure you want to logout?",
-              style: TextStyle(fontSize: 16),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                ),
-                child: Text(
-                  "Cancel",
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+            child: Text(
+              "Cancel",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
               ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade600,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  "Logout",
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
+            ),
           ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              "Logout",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
     );
 
     if (shouldLogout ?? false) {
@@ -666,7 +686,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               begin: const Offset(0.0, -1.0),
               end: Offset.zero,
             ).chain(CurveTween(curve: Curves.easeInOut));
-
             final fadeTween = Tween<double>(begin: 0.0, end: 1.0);
 
             return SlideTransition(
@@ -678,15 +697,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           },
         ),
-        (route) => false,
+            (route) => false,
       );
     }
   }
 
   Widget _buildDashboardContent() {
-    final bool hasValidNetworkImage = _isValidUrl(empimg);
-    final bool hasLocalImage =
-        profileImage.isNotEmpty && File(profileImage).existsSync();
+    final bool hasValidNetworkImage = _isValidUrl(_getImageUrl(empimg));
+    final bool hasLocalImage = profileImage.isNotEmpty && !kIsWeb && File(profileImage).existsSync();
+
     return SingleChildScrollView(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 400),
@@ -699,20 +718,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.grey.shade300,
-                backgroundImage:
-                    hasValidNetworkImage
-                        ? NetworkImage(empimg)
-                        : (hasLocalImage
-                            ? FileImage(File(profileImage))
-                            : null),
-                child:
-                    (!hasValidNetworkImage && !hasLocalImage)
-                        ? const Icon(
+                child: hasLocalImage
+                    ? ClipOval(
+                  child: Image.file(
+                    File(profileImage),
+                    fit: BoxFit.cover,
+                    width: 100,
+                    height: 100,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.person,
+                      size: 80,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+                    : (hasValidNetworkImage
+                    ? FutureBuilder<CacheManager>(
+                  future: _getCacheManager(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return CachedNetworkImage(
+                        imageUrl: _getImageUrl(empimg),
+                        cacheManager: snapshot.data,
+                        imageBuilder: (context, imageProvider) => Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              image: imageProvider,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        placeholder: (context, url) => const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) => const Icon(
                           Icons.person,
                           size: 80,
                           color: Colors.white,
-                        )
-                        : null,
+                        ),
+                      );
+                    }
+                    return const CircularProgressIndicator();
+                  },
+                )
+                    : const Icon(
+                  Icons.person,
+                  size: 80,
+                  color: Colors.white,
+                )),
               ),
             ),
             const SizedBox(height: 20),

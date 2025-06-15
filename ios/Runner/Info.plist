@@ -13,21 +13,19 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>hrm_dump_flutter</string>
+	<string>ManagifyHR</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
-	<string>????</string>
+	<string>MHRM</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -45,5 +43,20 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>mailto</string>
+		<string>tel</string>
+	</array>
+	<!-- Privacy usage descriptions for permissions used in Android manifest -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to your location to provide location-based features.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs access to your location in the background to provide location-based services.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to allow you to select images.</string>
+	<!-- Google Maps API Key -->
+	<key>GMSServicesAPIKey</key>
+	<string>AIzaSyCelDo4I5cPQ72TfCTQW-arhPZ7ALNcp8w</string>
 </dict>
 </plist>

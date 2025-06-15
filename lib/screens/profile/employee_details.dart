@@ -1,6 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:hrm_dump_flutter/theme/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EmployeeDetailsScreen extends StatefulWidget {
@@ -11,138 +10,69 @@ class EmployeeDetailsScreen extends StatefulWidget {
 }
 
 class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> {
-  final ImagePicker _picker = ImagePicker();
-  File? _empImg;
-
   // Consistent color scheme
-  static const Color primaryColor = Color(0xFF0077B6);
-  static const Color accentColor = Color(0xFF00B4D8);
-  static const Color backgroundColor = Color(0xFFF5F7FA);
   static const Color textColor = Color(0xFF2D3436);
   static const Color subtitleColor = Color(0xFF636E72);
 
-  Map<String, String> formData = {
-    'firstName': '',
-    'lastName': '',
-    'email': '',
-    'phone': '',
-    'aadharNo': '',
-    'panCard': '',
-    'education': '',
-    'bloodGroup': '',
-    'jobRole': '',
-    'gender': '',
-    'address': '',
-    'birthDate': '',
-    'joiningDate': '',
-    'status': '',
-    'bankName': '',
-    'bankAccountNo': '',
-    'bankIfscCode': '',
-    'branchName': '',
-    'salary': '',
-    'department': '',
-    'password': '',
-  };
-
-  final List<String> editableFields = [
-    'firstName',
-    'lastName',
-    'phone',
-    'education',
-    'address'
-  ];
+  // User data variables
+  String employeeFullName = '';
+  String email = '';
+  int phone = 0;
+  String role = '';
+  String jobRole = '';
+  String empimg = '';
+  String registercompanyname = '';
+  String address = '';
+  String birthDate = '';
+  String joiningDate = '';
+  String education = '';
+  String gender = '';
+  String aadharNo = '';
+  String bloodGroup = '';
+  String panCard = '';
+  String department = '';
+  String bankName = '';
+  String bankAccountNo = '';
+  String bankIfscCode = '';
+  String branchName = '';
 
   @override
   void initState() {
     super.initState();
-    _loadSavedData();
+    _loadUserData();
   }
 
-  Future<void> _loadSavedData() async {
+  Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      formData.forEach((key, _) {
-        formData[key] = prefs.getString(key) ?? '';
-      });
-
-      final empImgPath = prefs.getString('empImg');
-      if (empImgPath != null && empImgPath.isNotEmpty) {
-        final file = File(empImgPath);
-        if (file.existsSync()) {
-          _empImg = file;
-        }
-      }
+      employeeFullName = prefs.getString('fullName') ?? '';
+      email = prefs.getString('email') ?? '';
+      phone = prefs.getInt('phone') ?? 0;
+      jobRole = prefs.getString('jobRole') ?? '';
+      empimg = prefs.getString('empimg') ?? '';
+      birthDate = prefs.getString('birthDate') ?? '';
+      joiningDate = prefs.getString('joiningDate') ?? '';
+      address = prefs.getString('address') ?? '';
+      gender = prefs.getString('gender') ?? '';
+      aadharNo = prefs.getString('aadharNo') ?? '';
+      bloodGroup = prefs.getString('bloodGroup') ?? '';
+      panCard = prefs.getString('panCard') ?? '';
+      branchName = prefs.getString('branchName') ?? '';
+      bankIfscCode = prefs.getString('bankIfscCode') ?? '';
+      bankAccountNo = prefs.getString('bankAccountNo') ?? '';
+      bankName = prefs.getString('bankName') ?? '';
+      department = prefs.getString('department') ?? '';
+      education = prefs.getString('education') ?? '';
     });
-  }
-
-  Future<void> _saveData(String key, String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(key, value);
-  }
-
-
-  void _showEditDialog(String key, String currentValue, String label) {
-    final controller = TextEditingController(text: currentValue);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Edit $label',
-            style: const TextStyle(
-                fontWeight: FontWeight.w600, color: textColor)),
-        content: TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: const TextStyle(color: subtitleColor),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: primaryColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: accentColor, width: 2),
-            ),
-          ),
-          cursorColor: accentColor,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel',
-                style: TextStyle(color: subtitleColor)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () {
-              setState(() {
-                formData[key] = controller.text;
-                _saveData(key, controller.text);
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildInfoTile(String label, String key, String value, bool isEditable) {
     return Card(
-      elevation: 2,
+      elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         title: Text(
           label,
           style: const TextStyle(
@@ -155,12 +85,6 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> {
           value.isNotEmpty ? value : 'Not Provided',
           style: const TextStyle(color: subtitleColor, fontSize: 14),
         ),
-        trailing: isEditable
-            ? IconButton(
-          icon: const Icon(Icons.edit, color: primaryColor),
-          onPressed: () => _showEditDialog(key, value, label),
-        )
-            : null,
       ),
     );
   }
@@ -168,7 +92,7 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: AppColor.appBgColor,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
@@ -190,36 +114,26 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoTile(
-                'First Name', 'firstName', formData['firstName']!, false),
-            _buildInfoTile(
-                'Last Name', 'lastName', formData['lastName']!, false),
-            _buildInfoTile('Email', 'email', formData['email']!, false),
-            _buildInfoTile('Phone', 'phone', formData['phone']!, false),
-            _buildInfoTile(
-                'Aadhar No', 'aadharNo', formData['aadharNo']!, false),
-            _buildInfoTile(
-                'PAN Card', 'panCard', formData['panCard']!, false),
-            _buildInfoTile(
-                'Education', 'education', formData['education']!, false),
-            _buildInfoTile('Blood Group', 'bloodGroup',
-                formData['bloodGroup']!, false),
-            _buildInfoTile(
-                'Job Role', 'jobRole', formData['jobRole']!, false),
-            _buildInfoTile('Gender', 'gender', formData['gender']!, false),
-            _buildInfoTile(
-                'Address', 'address', formData['address']!, false),
-            _buildInfoTile('Birth Date', 'birthDate',
-                formData['birthDate']!, false),
-            _buildInfoTile('Joining Date', 'joiningDate',
-                formData['joiningDate']!, false),
-            _buildInfoTile('Branch', 'branchName',
-                formData['branchName']!, false),
-            _buildInfoTile('Department', 'department',
-                formData['department']!, false),
-            _buildInfoTile(
-                'Password', 'password', formData['password']!, false),
+            _buildInfoTile('Full Name', 'fullName', employeeFullName, false),
+            _buildInfoTile('Email', 'email', email, false),
+            _buildInfoTile('Phone No', 'phone', phone.toString(), false),
+            _buildInfoTile('Department', 'department', department, false),
+            _buildInfoTile('Education', 'education', education, false),
+            _buildInfoTile('Job Role', 'jobRole', jobRole, false),
+            _buildInfoTile('Joining Date', 'joiningDate', joiningDate, false),
+            _buildInfoTile('Address', 'address', address, false),
+            _buildInfoTile('Birth Date', 'birthDate', birthDate, false),
+            _buildInfoTile('Gender', 'gender', gender, false),
+            _buildInfoTile('Blood Group', 'bloodGroup', bloodGroup, false),
+            _buildInfoTile('Bank Name', 'bankName', bankName, false),
+            _buildInfoTile('Branch Name', 'branchName', branchName, false),
+            _buildInfoTile('Bank Account No', 'bankAccountNo', bankAccountNo, false),
+            _buildInfoTile('Bank IFSC Code', 'bankIfscCode', bankIfscCode, false),
+            _buildInfoTile('Aadhar No', 'aadharNo', aadharNo, false),
+            _buildInfoTile('Pan Card', 'panCard', panCard, false),
+            _buildInfoTile('Password', 'password', '**********', false),
           ],
         ),
       ),

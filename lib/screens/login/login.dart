@@ -62,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setInt('subadminId', responseData['subadmin']['id'] ?? 0);
         await prefs.setString('registercompanyname', responseData['subadmin']['registercompanyname'] ?? '');
         await prefs.setString('companylogo', responseData['subadmin']['companylogo'] ?? '');
+        await prefs.setString('companyurl', responseData['subadmin']['companyurl'] ?? '');
         await prefs.setString('email', email);
         await prefs.setInt('empId', responseData['empId'] ?? 0);
         await prefs.setInt('phone', responseData['phone'] ?? 0);
@@ -73,6 +74,15 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('panCard', responseData['panCard'] ?? '');
         await prefs.setString('bloodGroup', responseData['bloodGroup'] ?? '');
         await prefs.setString('aadharNo', responseData['aadharNo'] ?? '');
+        await prefs.setString('joiningDate', responseData['joiningDate'] ?? '');
+        await prefs.setString('department', responseData['department'] ?? '');
+        await prefs.setString('education', responseData['education'] ?? '');
+        await prefs.setString('branchName', responseData['branchName'] ?? '');
+        await prefs.setString('bankIfscCode', responseData['bankIfscCode'] ?? '');
+        await prefs.setString('bankAccountNo', responseData['bankAccountNo'] ?? '');
+        await prefs.setString('bankName', responseData['bankName'] ?? '');
+        await prefs.setDouble('latitude', responseData['subadmin']['latitude'] ?? 0.0);
+        await prefs.setDouble('longitude', responseData['subadmin']['longitude'] ?? 0.0);
 
         print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv');
 

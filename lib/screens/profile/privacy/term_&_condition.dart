@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TermsAndConditionsScreen extends StatelessWidget {
   const TermsAndConditionsScreen({Key? key}) : super(key: key);
 
-  // Color scheme
+// Color scheme
   static const Color primaryColor = Color(0xFF7C3AED); // Purple
   static const Color primaryLight = Color(0xFF8B5CF6);
   static const Color primaryDark = Color(0xFF6D28D9);
@@ -14,30 +15,90 @@ class TermsAndConditionsScreen extends StatelessWidget {
   static const Color accentColor = Color(0xFF06B6D4); // Cyan
   static const Color borderColor = Color(0xFFE2E8F0);
 
-  // Text styles
-  TextStyle _titleStyle() => const TextStyle(
-    fontSize: 17,
-    fontWeight: FontWeight.w700,
-    color: textPrimary,
-    letterSpacing: -0.2,
-  );
+  Future<void> _launchEmail(BuildContext context) async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: 'info@Webutsav.com',
+      queryParameters: {
+        'subject': 'Query Regarding Terms & Conditions',
+      },
+    );
 
-  TextStyle _contentStyle() => const TextStyle(
-    fontSize: 15,
-    color: textSecondary,
-    height: 1.7,
-    letterSpacing: 0.1,
-  );
+    try {
+      final bool canLaunch = await canLaunchUrl(emailUri);
+      if (!canLaunch) {
+        _showErrorSnackBar(context,
+            'No email client found. Please install or configure an email app.');
+        return;
+      }
+      await launchUrl(
+        emailUri,
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (e) {
+      _showErrorSnackBar(context, 'Failed to open email client: $e');
+    }
+  }
 
-  TextStyle _headerStyle() => const TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w800,
-    color: textPrimary,
-    letterSpacing: -0.5,
-  );
+  Future<void> _launchPhone(BuildContext context) async {
+    final Uri phoneUri = Uri(
+      scheme: 'tel',
+      path: '8766922792',
+    );
+    try {
+      final bool canLaunch = await canLaunchUrl(phoneUri);
+      if (!canLaunch) {
+        _showErrorSnackBar(
+            context, 'No phone app found. Please check your device settings.');
+        return;
+      }
+      await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      _showErrorSnackBar(context, 'Failed to initiate phone call: $e');
+    }
+  }
+
+  void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+// Text styles
+  TextStyle _titleStyle() =>
+      const TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
+        color: textPrimary,
+        letterSpacing: -0.2,
+      );
+
+  TextStyle _contentStyle() =>
+      const TextStyle(
+        fontSize: 15,
+        color: textSecondary,
+        height: 1.7,
+        letterSpacing: 0.1,
+      );
+
+  TextStyle _headerStyle() =>
+      const TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        color: textPrimary,
+        letterSpacing: -0.5,
+      );
 
   TextStyle _subHeaderStyle() =>
-      const TextStyle(fontSize: 16, color: textSecondary, height: 1.5);
+      const TextStyle(
+        fontSize: 16,
+        color: textSecondary,
+        height: 1.5,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -69,14 +130,13 @@ class TermsAndConditionsScreen extends StatelessWidget {
               ),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Section
+// Header Section
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
@@ -125,29 +185,26 @@ class TermsAndConditionsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Terms Sections
+// Terms Sections
                   _buildSection(
                     icon: Icons.delete_forever_rounded,
                     iconColor: const Color(0xFFEF4444),
                     title: "1. Data Retention and Deletion",
                     content:
-                        "We retain your personal data only for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required by law or to defend legal claims.\n\n"
+                    "We retain your personal data only for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required by law or to defend legal claims.\n\n"
                         "When data is no longer needed:\n"
                         "• We securely delete or anonymize it to prevent unauthorized access\n"
                         "• You can request deletion of your personal information (see \"Your Rights and Choices\")\n"
                         "• Automated deletion processes ensure compliance with retention policies\n"
                         "• Backup systems are also purged according to our retention schedule",
                   ),
-
                   _buildSection(
                     icon: Icons.verified_user_rounded,
                     iconColor: const Color(0xFF10B981),
                     title: "2. Your Rights and Choices",
                     content:
-                        "Depending on your location and applicable data protection laws, you may have the following rights:\n\n"
+                    "Depending on your location and applicable data protection laws, you may have the following rights:\n\n"
                         "• Access: Request details about the personal information we hold about you\n"
                         "• Correction: Request corrections to inaccurate or incomplete data\n"
                         "• Deletion: Request deletion of your personal data\n"
@@ -156,51 +213,48 @@ class TermsAndConditionsScreen extends StatelessWidget {
                         "• Data portability: Request transfer of your data to another organization\n\n"
                         "To exercise your rights, contact us at Info@Webutsav.com or call 8766922792.",
                   ),
-
                   _buildSection(
                     icon: Icons.cookie_rounded,
                     iconColor: const Color(0xFFF59E0B),
                     title: "3. Cookies and Tracking Technologies",
                     content:
-                        "Our websites and apps may use cookies, web beacons, and similar tracking technologies to:\n\n"
+                    "Our websites and apps may use cookies, web beacons, and cookies to:\n\n"
                         "• Enhance user experience by remembering preferences and settings\n"
                         "• Analyze usage patterns to improve services\n"
                         "• Serve relevant advertising (with consent where required)\n"
                         "• Enable social media features and functionality\n"
-                        "• Provide security features and fraud prevention\n\n"
-                        "You can control cookie preferences via browser settings or app permissions. Disabling cookies may impact functionality.",
+                        "• Provide security features and fraud prevention\n"
+                        "You can control cookie preferences via browser settings or app permissions.\n\n"
+                        "You can control cookie preferences.\n\n"
+                        "Disabling cookies may affect functionality.\n",
                   ),
-
                   _buildSection(
                     icon: Icons.security_rounded,
                     iconColor: const Color(0xFF3B82F6),
-                    title: "4. Data Security Measures",
+                    title: "4. Security Policy",
                     content:
-                        "We implement appropriate security measures to protect your data:\n\n"
+                    "We implement appropriate security measures to protect your data:\n"
                         "• Encryption: SSL/TLS for secure transmission and AES encryption for data at rest\n"
-                        "• Access controls: Multi-factor authentication and role-based access limited to authorized personnel\n"
-                        "• Regular security assessments, penetration testing, and system updates\n"
-                        "• Employee training on confidentiality, data protection, and security best practices\n"
-                        "• Incident response procedures and breach notification protocols\n\n"
-                        "While we strive to protect your data, no system is fully secure. Please safeguard your credentials and report suspicious activity immediately.",
+                        "• Access Controls: Multi-factor Authentication and role-based access controls limited to authorized personnel\n"
+                        "• Regular Security Assessments, Penetration testing, and system updates\n"
+                        "• Employee Training on confidentiality, data protection, and security best practices\n"
+                        "• Incident Response Procedures and breach notification\n\n"
+                        "While we strive to protect your data, no system is completely secure.\n Please safeguard your credentials and report any suspicious activity immediately.\n",
                   ),
-
                   _buildSection(
                     icon: Icons.child_care_rounded,
                     iconColor: const Color(0xFF8B5CF6),
                     title: "5. Policy for Minors",
                     content:
-                        "Our services are not intended for children under 18 years of age.\n\n"
+                    "Our services are not intended for children under 18 years of age.\n\n"
                         "• We do not knowingly collect personal information from minors without parental consent\n"
                         "• If we discover that a minor has provided personal information, we will delete it promptly\n"
                         "• Parents and guardians have the right to review, modify, or delete their child's information\n"
                         "• We comply with applicable children's privacy laws including COPPA\n\n"
-                        "Parents can contact Info@Webutsav.com to request deletion of their child's information or to report any concerns.",
+                        "Parents can contact us at Info@Webutsav.com to request deletion of their child's information or to report concerns.\n",
                   ),
-
                   const SizedBox(height: 32),
-
-                  // Contact Section
+// Contact Section
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -253,21 +307,21 @@ class TermsAndConditionsScreen extends StatelessWidget {
                               icon: Icons.email_rounded,
                               label: "Email Us",
                               color: accentColor,
+                              onPressed: () => _launchEmail(context),
                             ),
                             _buildContactButton(
                               icon: Icons.phone_rounded,
                               label: "Call Us",
                               color: primaryColor,
+                              onPressed: () => _launchPhone(context),
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Footer
+// Footer
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -301,7 +355,6 @@ class TermsAndConditionsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 20),
                 ],
               ),
@@ -369,23 +422,27 @@ class TermsAndConditionsScreen extends StatelessWidget {
     required IconData icon,
     required String label,
     required Color color,
+    required VoidCallback onPressed,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        elevation: 2,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 16),
+          Icon(icon, color: Colors.white, size: 16),
           const SizedBox(width: 6),
           Text(
             label,
-            style: TextStyle(
-              color: color,
+            style: const TextStyle(
+              color: Colors.white,
               fontWeight: FontWeight.w600,
               fontSize: 12,
             ),
