@@ -34,7 +34,7 @@ class _AttendancesRecordsScreenState extends State<AttendancesRecordsScreen> {
     'holiday': 0,
     'holidayPercentage': 0.0,
     'totalDays': 0,
-    'totalAttendancePercentage': 0.0, // Added for total percentage
+    'totalAttendancePercentage': 0.0,
   };
 
   @override
@@ -46,7 +46,6 @@ class _AttendancesRecordsScreenState extends State<AttendancesRecordsScreen> {
   Future<void> _initialize() async {
     try {
       await _loadUserData();
-      // Load cached summary data first to display immediately
       await _loadSummaryFromPreferences();
       await fetchAttendanceRecords();
     } catch (e) {
@@ -91,7 +90,6 @@ class _AttendancesRecordsScreenState extends State<AttendancesRecordsScreen> {
           _errorMessage = null;
         });
         _filterRecordsByMonth();
-        // Ensure summary is saved and reloaded after fetching
         await _saveSummaryToPreferences();
         await _loadSummaryFromPreferences();
       } else {
@@ -112,7 +110,6 @@ class _AttendancesRecordsScreenState extends State<AttendancesRecordsScreen> {
           recordDate.month == _selectedMonth.month;
     }).toList();
 
-    // Sort filtered records by date descending
     filtered.sort((a, b) {
       final dateA = DateFormat('yyyy-MM-dd').parse(a.date);
       final dateB = DateFormat('yyyy-MM-dd').parse(b.date);
@@ -126,25 +123,39 @@ class _AttendancesRecordsScreenState extends State<AttendancesRecordsScreen> {
 
   Future<void> _saveSummaryToPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    int presentDays = _filteredRecords.where((r) => r.status.toLowerCase() == 'present').length;
-    int absentDays = _filteredRecords.where((r) => r.status.toLowerCase() == 'absent').length;
-    int halfDay = _filteredRecords.where((r) => r.status.toLowerCase() == 'half day').length;
-    int paidLeave = _filteredRecords.where((r) => r.status.toLowerCase() == 'paid leave').length;
-    int weekOff = _filteredRecords.where((r) => r.status.toLowerCase() == 'week off').length;
-    int holiday = _filteredRecords.where((r) => r.status.toLowerCase() == 'holiday').length;
-    int totalDays = _filteredRecords.length;
+    int presentDays = _filteredRecords
+        .where((r) => r.status.toLowerCase().replaceAll('-', ' ') == 'present')
+        .length;
+    int absentDays = _filteredRecords
+        .where((r) => r.status.toLowerCase().replaceAll('-', ' ') == 'absent')
+        .length;
+    int halfDay = _filteredRecords
+        .where((r) => r.status.toLowerCase().replaceAll('-', ' ') == 'half day')
+        .length;
+    int paidLeave = _filteredRecords
+        .where((r) => r.status.toLowerCase().replaceAll('-', ' ') == 'paid leave')
+        .length;
+    int weekOff = _filteredRecords
+        .where((r) => r.status.toLowerCase().replaceAll('-', ' ') == 'week off')
+        .length;
+    int holiday = _filteredRecords
+        .where((r) => r.status.toLowerCase().replaceAll('-', ' ') == 'holiday')
+        .length;
+
+    // Calculate total days in the selected month
+    final lastDayOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+    int totalDays = lastDayOfMonth.day;
 
     double presentPercentage = totalDays > 0 ? (presentDays / totalDays) * 100 : 0.0;
     double absentPercentage = totalDays > 0 ? (absentDays / totalDays) * 100 : 0.0;
-    double halfDayPercentage = totalDays > 0 ? (halfDay / totalDays) * 100 : 0.0;
+    double halfDayPercentage = totalDays > 0 ? (halfDay * 0.5 / totalDays) * 100 : 0.0;
     double paidLeavePercentage = totalDays > 0 ? (paidLeave / totalDays) * 100 : 0.0;
     double weekOffPercentage = totalDays > 0 ? (weekOff / totalDays) * 100 : 0.0;
     double holidayPercentage = totalDays > 0 ? (holiday / totalDays) * 100 : 0.0;
     double totalAttendancePercentage = totalDays > 0
-        ? (presentDays + halfDay + paidLeave + weekOff + holiday) / totalDays * 100
+        ? ((presentDays + (halfDay * 0.5) + paidLeave + weekOff + holiday) / totalDays) * 100
         : 0.0;
 
-    // Save to SharedPreferences with a key that includes the selected month
     String monthKey = DateFormat('yyyy_MM').format(_selectedMonth);
     await prefs.setInt('presentDays_$monthKey', presentDays);
     await prefs.setInt('absentDays_$monthKey', absentDays);
@@ -161,7 +172,6 @@ class _AttendancesRecordsScreenState extends State<AttendancesRecordsScreen> {
     await prefs.setDouble('holidayPercentage_$monthKey', holidayPercentage);
     await prefs.setDouble('totalAttendancePercentage_$monthKey', totalAttendancePercentage);
 
-    // Update local summary data
     setState(() {
       _summaryData = {
         'presentDays': presentDays,
@@ -238,7 +248,8 @@ class _AttendancesRecordsScreenState extends State<AttendancesRecordsScreen> {
   }
 
   Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
+    final normalizedStatus = status.toLowerCase().replaceAll('-', ' ');
+    switch (normalizedStatus) {
       case 'present':
         return Colors.green;
       case 'absent':
@@ -322,7 +333,7 @@ class _AttendancesRecordsScreenState extends State<AttendancesRecordsScreen> {
             color: Colors.red,
           ),
           _buildSummaryCard(
-            title: 'Half Day',
+            title: 'Half-Day',
             value: '${_summaryData['halfDay']}',
             percentage: '${_summaryData['halfDayPercentage'].toStringAsFixed(1)}%',
             color: Colors.orange,

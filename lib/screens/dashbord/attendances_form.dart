@@ -40,7 +40,6 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
   final String _imageBaseUrl = 'https://api.managifyhr.com/images/profile/';
 
 
-
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _distanceController = TextEditingController();
   final TextEditingController _inTimeController = TextEditingController();
