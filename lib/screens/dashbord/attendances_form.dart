@@ -427,19 +427,11 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
         }
 
         setState(() {
-          _isWorkTypeSaved = true;
+          _isWorkTypeSaved = _outTimeController.text.trim().isNotEmpty ? true : _isWorkTypeSaved;
         });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Attendance saved successfully'),
-            backgroundColor: AppColor.green,
-          ),
-        );
 
         final stage = _getCurrentStage();
         if (stage == 'punchOut' && _outTimeController.text.isNotEmpty) {
-
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => AttendancesRecordsScreen()),
@@ -592,8 +584,8 @@ class _AttendanceFormPageState extends State<AttendanceFormPage> {
                 }
               } catch (e) {
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString())));
+                // ScaffoldMessenger.of(context).showSnackBar(
+                //     SnackBar(content: Text(e.toString())));
               } finally {
                 setState(() => _isSubmitting = false);
               }

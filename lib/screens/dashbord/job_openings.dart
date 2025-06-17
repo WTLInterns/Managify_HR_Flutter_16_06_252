@@ -19,6 +19,7 @@ class _JobOpeningGridScreenState extends State<JobOpeningGridScreen> {
   String? _errorMessage;
   String? _companyLogo;
   int empId = 0;
+  int subadminId = 0;
 
   @override
   void initState() {
@@ -30,10 +31,11 @@ class _JobOpeningGridScreenState extends State<JobOpeningGridScreen> {
     final prefs = await SharedPreferences.getInstance();
     _companyLogo = prefs.getString("company_logo");
     empId = prefs.getInt('empId') ?? 0;
+    subadminId = prefs.getInt('subadminId') ?? 0;
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.managifyhr.com/api/openings/$empId'),
+        Uri.parse('https://api.managifyhr.com/api/openings/$subadminId'),
       );
 
       if (response.statusCode == 200) {

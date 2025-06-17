@@ -44,8 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
           'password': password,
         },
       );
-      print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv');
-
 
       if (response.statusCode == 200) {
         print(response.statusCode);

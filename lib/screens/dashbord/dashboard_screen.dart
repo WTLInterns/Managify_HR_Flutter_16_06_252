@@ -115,9 +115,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -136,13 +133,13 @@ class _DashboardScreenState extends State<DashboardScreen>
       case 'holiday':
         return Colors.red;
       case 'week off':
-        return Colors.blue;
-      case 'paid leave':
         return Colors.purple;
+      case 'paid leave':
+        return Colors.blue;
       case 'half day':
         return Colors.orange;
       default:
-        return Colors.black;
+        return Colors.grey;
     }
   }
 
