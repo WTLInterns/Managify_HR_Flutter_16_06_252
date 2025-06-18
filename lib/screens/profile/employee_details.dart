@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hrm_dump_flutter/theme/colors.dart';
+import 'package:managify_hr/theme/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EmployeeDetailsScreen extends StatefulWidget {

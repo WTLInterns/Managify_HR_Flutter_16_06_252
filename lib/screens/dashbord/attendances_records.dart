@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hrm_dump_flutter/models/attendances_records_model.dart';
+import 'package:managify_hr/models/attendances_records_model.dart';
 
 class AttendancesRecordsScreen extends StatefulWidget {
   const AttendancesRecordsScreen({super.key});

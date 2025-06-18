@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hrm_dump_flutter/theme/colors.dart';
+import 'package:managify_hr/theme/colors.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({Key? key}) : super(key: key);

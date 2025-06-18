@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hrm_dump_flutter/models/job_opening_model.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/upload_resume.dart';
-import 'package:hrm_dump_flutter/widget/custom_widgets.dart';
+import 'package:managify_hr/models/job_opening_model.dart';
+import 'package:managify_hr/screens/dashbord/upload_resume.dart';
+import 'package:managify_hr/widget/custom_widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';

@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:hrm_dump_flutter/res/app_styles.dart';
-import 'package:hrm_dump_flutter/screens/login/login.dart';
-import 'package:hrm_dump_flutter/theme/colors.dart';
+import 'package:managify_hr/res/app_styles.dart';
+import 'package:managify_hr/screens/login/login.dart';
+import 'package:managify_hr/theme/colors.dart';
 import 'package:http/http.dart' as http;
 
 class ResetPassword extends StatefulWidget {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
-import 'package:hrm_dump_flutter/theme/colors.dart';
-import 'package:hrm_dump_flutter/widget/custom_widgets.dart';
+import 'package:managify_hr/theme/colors.dart';
+import 'package:managify_hr/widget/custom_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UploadResumeScreen extends StatefulWidget {

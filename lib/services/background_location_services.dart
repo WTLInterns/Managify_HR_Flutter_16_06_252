@@ -3,7 +3,7 @@ import 'dart:isolate';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hrm_dump_flutter/services/location_service.dart';
+import 'package:managify_hr/services/location_service.dart';
 
 class BackgroundLocationService {
   static const String _isolateName = 'location_isolate';

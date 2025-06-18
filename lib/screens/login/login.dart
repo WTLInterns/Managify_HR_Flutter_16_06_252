@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'package:hrm_dump_flutter/screens/dashbord/dashboard_screen.dart';
-import 'package:hrm_dump_flutter/theme/colors.dart';
+import 'package:managify_hr/screens/dashbord/dashboard_screen.dart';
+import 'package:managify_hr/theme/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:hrm_dump_flutter/res/app_styles.dart';
-import 'package:hrm_dump_flutter/screens/login/forget_password.dart';
+import 'package:managify_hr/res/app_styles.dart';
+import 'package:managify_hr/screens/login/forget_password.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hrm_dump_flutter/screens/splash/splash.dart';
-import 'package:hrm_dump_flutter/services/background_location_services.dart';
-import 'package:hrm_dump_flutter/services/location_service.dart';
-import 'package:hrm_dump_flutter/theme/app_theme.dart';
-import 'package:hrm_dump_flutter/theme/colors.dart';
+import 'package:managify_hr/screens/splash/splash.dart';
+import 'package:managify_hr/services/background_location_services.dart';
+import 'package:managify_hr/services/location_service.dart';
+import 'package:managify_hr/theme/app_theme.dart';
+import 'package:managify_hr/theme/colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

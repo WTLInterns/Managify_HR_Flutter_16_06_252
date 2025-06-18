@@ -6,16 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:hrm_dump_flutter/models/attendances_records_model.dart';
-import 'package:hrm_dump_flutter/screens/dailyGoals/daily_goals.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/job_openings.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/leave_records.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/attendances_form.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/attendances_records.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/leave_screen.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/upload_resume.dart';
-import 'package:hrm_dump_flutter/screens/login/login.dart';
-import 'package:hrm_dump_flutter/screens/profile/profile_screen.dart';
+import 'package:managify_hr/models/attendances_records_model.dart';
+import 'package:managify_hr/screens/dashbord/job_openings.dart';
+import 'package:managify_hr/screens/dashbord/leave_records.dart';
+import 'package:managify_hr/screens/dashbord/attendances_form.dart';
+import 'package:managify_hr/screens/dashbord/attendances_records.dart';
+import 'package:managify_hr/screens/dashbord/leave_screen.dart';
+import 'package:managify_hr/screens/dashbord/upload_resume.dart';
+import 'package:managify_hr/screens/login/login.dart';
+import 'package:managify_hr/screens/profile/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -194,10 +193,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       case 0:
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => DailyGoalsScreen()),
-        ).then((_) => _loadUserData());
+        // Show "Coming Soon" message for Daily Goals
+        _showComingSoonDialog();
         break;
       case 2:
         Navigator.push(
@@ -206,6 +203,87 @@ class _DashboardScreenState extends State<DashboardScreen>
         ).then((_) => _loadUserData());
         break;
     }
+  }
+
+  void _showComingSoonDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.track_changes,
+                color: Colors.blue.shade600,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "Daily Goals",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.construction,
+                size: 64,
+                color: Colors.orange.shade400,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Coming Soon!",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "We're working hard to bring you an amazing Daily Goals feature. Stay tuned for updates!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                "Got it!",
+                style: TextStyle(
+                  color: Colors.blue.shade600,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildNavItem(int index, IconData icon, String label) {

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/dashboard_screen.dart';
+import 'package:managify_hr/screens/dashbord/dashboard_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 

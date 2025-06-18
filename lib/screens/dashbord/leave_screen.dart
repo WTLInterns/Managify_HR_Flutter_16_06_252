@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/leave_records.dart';
+import 'package:managify_hr/screens/dashbord/leave_records.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;

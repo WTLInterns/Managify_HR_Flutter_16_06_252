@@ -1,4 +1,4 @@
-# hrm_dump_flutter
+# managify_hr
 
 A new Flutter project.
 

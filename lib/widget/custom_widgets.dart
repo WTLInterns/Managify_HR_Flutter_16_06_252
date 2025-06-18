@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hrm_dump_flutter/theme/colors.dart';
+import 'package:managify_hr/theme/colors.dart';
 
 class UiHelper {
   /// Custom Button

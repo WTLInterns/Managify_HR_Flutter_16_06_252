@@ -1,6 +1,6 @@
 {
-    "name": "hrm_dump_flutter",
-    "short_name": "hrm_dump_flutter",
+    "name": "managify_hr",
+    "short_name": "managify_hr",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

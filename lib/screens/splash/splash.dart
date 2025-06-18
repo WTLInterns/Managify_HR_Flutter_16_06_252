@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:hrm_dump_flutter/screens/login/login.dart';
-import 'package:hrm_dump_flutter/screens/dashbord/dashboard_screen.dart';
-import 'package:hrm_dump_flutter/theme/colors.dart';
+import 'package:managify_hr/screens/login/login.dart';
+import 'package:managify_hr/screens/dashbord/dashboard_screen.dart';
+import 'package:managify_hr/theme/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
