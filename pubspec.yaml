@@ -68,14 +68,22 @@ flutter:
     - assets/Webutsav__3.png
     - assets/HRM_logo.jpg
 
-# App Icons Configuration
+# App Icons Configuration - CORRECTED
 flutter_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
   image_path: "assets/HRM_logo.jpg"
+  min_sdk_android: 21
+  web:
+    generate: false
+  windows:
+    generate: false
+  macos:
+    generate: false
+  
   # iOS specific settings
-  ios_content_configuration:
-    adaptive_icon_background: "#FFFFFF"
+  remove_alpha_ios: true
+  
   # Android specific settings  
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/HRM_logo.jpg"

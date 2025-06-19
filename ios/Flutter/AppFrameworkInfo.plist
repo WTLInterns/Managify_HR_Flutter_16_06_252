@@ -9,11 +9,11 @@
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.managifyHR.hrmDumpFlutter</string>
+	<string>com.managifyhr.managifyhr</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>ManagifyHR</string>
+	<string>managify_hr</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -47,44 +47,83 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	
-	<!-- Location Permissions -->
+
+	<!-- Privacy Permissions with Clear Descriptions -->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>ManagifyHR needs location access to track work locations and provide location-based HR services.</string>
+	<string>ManagifyHR needs location access to track work attendance and provide location-based HR services.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>ManagifyHR needs location access to track work locations and provide location-based HR services.</string>
+	<string>ManagifyHR needs location access to track work attendance and provide location-based HR services.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>ManagifyHR needs background location access to track work attendance and locations.</string>
-	
-	<!-- Photo Library Access (if needed) -->
+	<string>ManagifyHR needs background location access to automatically track work attendance and office locations.</string>
+
+	<!-- Photo Library Access -->
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>ManagifyHR needs access to photos for profile pictures and document uploads.</string>
-	
-	<!-- Camera Access (if needed) -->
+	<string>ManagifyHR needs access to your photo library to upload profile pictures and HR documents.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>ManagifyHR needs permission to save photos to your library for HR documentation.</string>
+
+	<!-- Camera Access -->
 	<key>NSCameraUsageDescription</key>
-	<string>ManagifyHR needs camera access to take profile pictures and scan documents.</string>
-	
-	<!-- Microphone Access (if needed) -->
+	<string>ManagifyHR needs camera access to capture profile pictures and scan HR documents.</string>
+
+	<!-- Microphone Access (if voice features are used) -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>ManagifyHR needs microphone access for voice notes and communication features.</string>
-	
-	<!-- Background Modes -->
+
+	<!-- File Access (iOS 11+) -->
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>ManagifyHR needs access to documents for importing and exporting HR files.</string>
+
+	<!-- Background Modes for Location and Background Processing -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
 		<string>background-processing</string>
-		<string>fetch</string>
+		<string>background-fetch</string>
 	</array>
-	
-	<!-- App Transport Security -->
+
+	<!-- App Transport Security Settings -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>your-api-domain.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
-	
+
 	<!-- Google Maps API Key -->
 	<key>GoogleMapsAPIKey</key>
 	<string>AIzaSyCelDo4I5cPQ72TfCTQW-arhPZ7ALNcp8w</string>
+
+	<!-- Prevent Screenshot in App Switcher (Optional for Security) -->
+	<key>UIApplicationExitsOnSuspend</key>
+	<false/>
+
+	<!-- iOS 14+ App Tracking Transparency (Required for App Store) -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>ManagifyHR uses tracking to provide personalized HR analytics and improve app performance.</string>
+
+	<!-- Supported Device Families -->
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+		<integer>2</integer>
+	</array>
+
+	<!-- Minimum iOS Version -->
+	<key>MinimumOSVersion</key>
+	<string>12.0</string>
+
+	<!-- Required for iOS 15+ -->
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
 </dict>
 </plist>
